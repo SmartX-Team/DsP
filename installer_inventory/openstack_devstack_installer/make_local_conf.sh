@@ -1,0 +1,55 @@
+#!/bin/bash
+BOX=$1
+OPENSTACK_MODE=$2
+CONTROLLER_NODE=$3
+
+INSTALLER_PATH="${HOME}/dsp_installer"
+CONF_DIR="$INSTALLER_PATH/conf"
+INVENTORY_PATH="$INSTALLER_PATH/installer_inventory"
+SUPERVISOR_DIR="$INVENTORY_PATH/openstack_devstack_installer"
+PG_TPL="$CONF_DIR/PLAYGROUND_TEMPLATE"
+DSP_INSTALLER_DIR="$INSTALLER_PATH/dsp_installer"
+
+
+source $CONF_DIR/$BOX
+
+if [ $OPENSTACK_MODE == "CONTROLLER" ]; then
+        cp ${SUPERVISOR_DIR}/local.conf.controller $DSP_INSTALLER_DIR/local.conf.${BOX}
+	
+	FLOATING_NETWORK_ADDRESS="${MGMT_IP_ADDRESS:0:11}`expr ${MGMT_IP_ADDRESS:11} + 13`"
+	FLOATING_POOL_START="${FLOATING_NETWORK_ADDRESS:0:11}`expr ${FLOATING_NETWORK_ADDRESS:11} + 2`"
+	FLOATING_POOL_END="${FLOATING_NETWORK_ADDRESS:0:11}` expr ${FLOATING_NETWORK_ADDRESS:11} + 14`"
+        INITIAL_ROUTER_IP="${FLOATING_NETWORK_ADDRESS:0:11}` expr ${FLOATING_NETWORK_ADDRESS:11} + 1`"
+
+        sed -i "s/<FLOATING_NETWORK_ADDRESS>/${FLOATING_NETWORK_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+        sed -i "s/<CONTROLLER_MGMT_IP>/${MGMT_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+	sed -i "s/<CONTROLLER_DATA_IP>/${DATA_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+	sed -i "s/<CONTROLLER_CTRL_IP>/${CTRL_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+	sed -i "s/<INITIAL_ROUTER_IP>/${INITIAL_ROUTER_IP}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+	sed -i "s/<FLOATING_POOL_START>/${FLOATING_POOL_START}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+        sed -i "s/<FLOATING_POOL_END>/${FLOATING_POOL_END}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+
+
+elif [ $OPENSTACK_MODE == "COMPUTE" ]; then
+        if [ "${CONTROLLER_NODE:-null}" == null ]; then
+                echo "Controller IP Address is empty!!"
+                echo "Install openstack as a single node"
+                OPENSTACK_MODE="SINGLE"
+        else
+                CONTROLLER_MGMT_IP=$(cat ${INSTALLER_PATH}/conf/$CONTROLLER_NODE | grep MGMT_IP_ADDRESS | sed "s/MGMT_IP_ADDRESS=//g")
+		CONTROLLER_CTRL_IP=$(cat ${INSTALLER_PATH}/conf/$CONTROLLER_NODE | grep CTRL_IP_ADDRESS | sed "s/CTRL_IP_ADDRESS=//g")
+		
+		cp $SUPERVISOR_DIR/local.conf.compute $DSP_INSTALLER_DIR/local.conf.${BOX}
+		sed -i "s/<COMPUTE_CTRL_IP>/${CTRL_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+		sed -i "s/<COMPUTE_DATA_IP>/${DATA_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+                sed -i "s/<CONTROLLER_MGMT_IP>/${CONTROLLER_MGMT_IP}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+		sed -i "s/<CONTROLLER_CTRL_IP>/${CONTROLLER_CTRL_IP}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+#		echo "BOX=$BOX CONTROLLER_MGMT_IP=$CONTROLLER_MGMT_IP CONTROLLER_CTRL_IP=$CONTROLLER_CTRL_IP COMPUTE_CTRL_IP=$CTRL_IP_ADDRESS COMPUTE_MGMT_IP=$DATA_IP_ADDRESS"
+        fi
+fi
+
+if [ $OPENSTACK_MODE == "SINGLE" ]; then
+        cp ${SUPERVISOR_DIR}/local.conf.controller $DSP_INSTALLER_DIR/local.conf.${BOX}
+        sed -i "s/<BOX_IP>/${MGMT_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/local.conf.${BOX}
+fi
+

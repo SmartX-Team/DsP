@@ -1,0 +1,5 @@
+Follow the below instruction to execute DsP-Installer Correctly!
+
+1. Copy "generic" file to /etc/maas/preseeds/
+2. Copy "dhcpd.conf" file to /etc/maas/
+3. Make Directory /usr/share/maas/web/static/maasrepo
