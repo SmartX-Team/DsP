@@ -1,5 +1,13 @@
 Follow the below instruction to execute DsP-Installer Correctly!
 
+## Configure Ubuntu MAAS Part for Bare-metal Provisioning Capability ##
 1. Copy "generic" file to /etc/maas/preseeds/
 2. Copy "dhcpd.conf" file to /etc/maas/
 3. Make Directory /usr/share/maas/web/static/maasrepo
+
+## When using Secured Repository Concept ##
+1. Install "GnuPG" Package (i.e., sudo apt-get install gnupg)
+2. Generate your Key pair: gpg --gen-Key
+3. Write down your own "Playground Template" and "Box Configuration Files"
+4. Encryption the files with 
+   "gpg --output <OUTPUT FILE> --encrypt -r <KEY USERNAME> <FILE_NAME>"
