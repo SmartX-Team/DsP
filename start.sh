@@ -39,7 +39,9 @@ do
 	sudo bash $INSTALLER_PATH/util/ssh_key_clean.sh $BOX > /dev/null
 	echo "	SSH KEYs are cleaned"
 
-        #This Part check whether this site can be install
+        # This Part check whether this site can be install
+		# DsP-Installer exclude boxes written in DONT_TOUCH_SITE.
+		# This can prevent from doing provisioning over production environment.
         CHECK=$(cat $CONF_DIR/DONT_TOUCH_SITE | grep $BOX)
 
         if [ "${CHECK:-null}" != null ]; then
@@ -50,11 +52,17 @@ do
         fi
 
         #date > $LOG_DIR/${BOX}_test_time
-
+		# Prepare DsP-Installer
+		# Copy appropriate installers from installer_inventory to dsp_installer,
+		# then modify parameters inside copied installers. (picker.sh)
         sudo bash $INSTALLER_PATH/installer_inventory/picker.sh $BOX
 done
 
-#sudo bash $INSTALLER_PATH/dsp_installer/dsp_installer.sh
+# Do real provisioning procedures
+# By now, all required installers are prepared inside dsp_installer directory.
+# Therefore, dsp_installer automates Playground	provisioning by excuting
+# prepared installers one by one.
+sudo bash $INSTALLER_PATH/dsp_installer/dsp_installer.sh
 
 
 END_TIME=$(date +%s)
