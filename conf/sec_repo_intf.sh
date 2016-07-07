@@ -11,8 +11,8 @@ if [ $1 == "encrypt" ]; then
 		exit -1
 	fi
 	USR=`gpg --list-keys | grep uid | awk '{print $NF}'`
-
-	if [ -n $USR ]; then
+	echo $USR
+	if [ ! -n $USR ]; then
 		echo "You should generate your key before using Secured Repository"
 		echo "Command: gpg --gen-key"
 		exit -1
