@@ -1,0 +1,22 @@
+---
+boxname: GJ
+type: Physical
+
+Software:
+    Ubuntu:
+        Version: Xenial
+    OpenStack:
+        Mode: Compute
+        Controller: JJ
+        Installer: Full
+---
+boxname: JJ
+type: Physical
+
+Software:
+    Ubuntu:
+    OpenStack:
+        Mode: Controller
+        Installer: Full
+        Version: Mitaka
+---
