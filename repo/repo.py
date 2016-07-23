@@ -62,11 +62,30 @@ class SecuredRepoMgr(object):
 
         tbc = _BoxConf()
         tbc.boxname = boxconf['boxname']
-        tbc.account = boxconf['account']
+        tbc.accid = boxconf['account']
         tbc.nic = boxconf['nic']
 
         self._box.append(tbc)
 
+    def getniclist(self, boxname):
+        """
+        Get a list consisting of detail information of NICs in a box
+        :param boxname: Hostname of a box
+        :return: A NICs list of the box
+        """
+        for b in self._box:
+            if b.boxname == boxname:
+                return b.nic
+
+    def getaccid(self, boxname):
+        """
+        Get Linux Account ID of a box
+        :param boxname: Hostname of a box
+        :return: Linux Account ID of the box whose the hostname "boxname"
+        """
+        for b in self._box:
+            if b.boxname == boxname:
+                return b.accid
 
 class _BoxConf:
     """
@@ -77,7 +96,7 @@ class _BoxConf:
     def __init__(self):
         self.boxname = ""
         self.nic = list()
-        self.account = ""
+        self.accid = ""
 
 if __name__ == "__main__":
     bn = "C1-GJ1"
@@ -88,3 +107,7 @@ if __name__ == "__main__":
         print "Box "+bn+" is exists"
     else:
         print "Box "+bn+" is not exists"
+        exit(-1)
+
+    print sr.getaccid(bn)
+    print sr.getniclist(bn)
