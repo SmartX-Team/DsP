@@ -1,0 +1,9 @@
+---
+boxname: C1-GJ1
+account: netcs
+nic:
+    nic1:
+        ipaddr: 210.114.90.3
+        netmask: 255.255.255.0
+        gateway: 210.114.90.1
+        dns: 8.8.8.8
