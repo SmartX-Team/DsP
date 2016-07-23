@@ -1,37 +1,15 @@
+# -*- coding: utf-8 -*-
+
+
 class BoxInfo:
     def __init__(self):
-        self._name = ""
-        self._type = ""
-        self._sw = list()
+        self.name = ""
+        self.type = ""
+        self.sw = list()
+        self.nic = list()
 
-    def getname(self):
-        return self._name
-
-    def setname(self, name):
-        self._name = name
-
-    def gettype(self):
-        return self._type
-
-    def settype(self, type):
-        self._type = type
-
-    def getswinfo(self):
-        return self._sw
-
-    def setswinfo(self, swinfo):
-        self._sw.append(swinfo)
 
 class SwInfo:
     def __init__(self):
-        self._name = ""
-        self._params = dict()
-
-    def getname(self):
-        return self._name
-
-    def getparams(self):
-        return self._params
-
-    def setparam(self, k, v):
-        self._params[k] = v
+        self.name = ""
+        self.params = dict()
