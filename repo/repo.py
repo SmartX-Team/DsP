@@ -29,14 +29,13 @@ class SecuredRepoMgr(object):
         """
 
         try:
-            pt = os.curdir+'/box.yaml'
-            print "pt is "+pt
+            pt = os.path.abspath(os.getcwd()) + "/repo/box.yaml"
             fp = open(pt, 'r')
             fr = fp.read()
         except IOError:
             print "Can't open Box Configuration File"
-            print "Please make box.yaml file and define your box's"
-            print "Configuration by referring a guide."
+            print "Please make box.yaml file and define your box's"\
+                  "Configuration by referring a guide."
             exit(-1)
 
         byl = yaml.load_all(fr)
@@ -70,6 +69,7 @@ class SecuredRepoMgr(object):
     def getniclist(self, boxname):
         """
         Get a list consisting of detail information of NICs in a box
+
         :param boxname: Hostname of a box
         :return: A NICs list of the box
         """
@@ -80,12 +80,14 @@ class SecuredRepoMgr(object):
     def getaccid(self, boxname):
         """
         Get Linux Account ID of a box
+
         :param boxname: Hostname of a box
         :return: Linux Account ID of the box whose the hostname "boxname"
         """
         for b in self._box:
             if b.boxname == boxname:
                 return b.accid
+
 
 class _BoxConf:
     """
