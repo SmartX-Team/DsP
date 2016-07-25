@@ -1,0 +1,31 @@
+---
+swtype: GJ
+
+Parameter:
+    a: Par_a(GJ)
+    -bb: LPar_bb(GJ)
+    -cc: =LPar_cc(JJ)
+    d:
+    -e:
+
+    
+---
+swtype: JJ
+
+Parameter:
+    a: Par_a(JJ)
+    -bb: LPar_bb(JJ)
+    -cc: =LPar_cc(JJ)
+    d: Par_d(JJ)
+    -e:
+    
+---
+swtype: Default
+
+Parameter:
+    a: Par_a(Default)
+    d: Par_d(Default)
+    -e: LPar_e(Default)
+    f: Par_f(Default)
+    -g: LPar_g(Default)
+
