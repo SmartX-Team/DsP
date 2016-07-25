@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-import os.path
+import os
 import yaml
+import base64
+import cryptography
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 class SecuredRepoMgr(object):
@@ -18,7 +24,9 @@ class SecuredRepoMgr(object):
         return cls._instance
 
     def __init__(self):
-        self._box = list()
+        self._boxlist = list()
+        self._seckey = None
+        self._secseed = None
 
     def existbox(self, boxname):
         """
@@ -32,9 +40,10 @@ class SecuredRepoMgr(object):
             pt = os.path.abspath(os.getcwd()) + "/repo/box.yaml"
             fp = open(pt, 'r')
             fr = fp.read()
+            fp.close()
         except IOError:
             print "Can't open Box Configuration File"
-            print "Please make box.yaml file and define your box's"\
+            print "Please make box.yaml file and define your box's "\
                   "Configuration by referring a guide."
             exit(-1)
 
@@ -55,16 +64,16 @@ class SecuredRepoMgr(object):
         :return: None
         """
 
-        for b in self._box:
+        for b in self._boxlist:
             if b.boxname == boxconf['boxname']:
-                self._box.remove(b)
+                self._boxlist.remove(b)
 
         tbc = _BoxConf()
         tbc.boxname = boxconf['boxname']
         tbc.accid = boxconf['account']
         tbc.nic = boxconf['nic']
 
-        self._box.append(tbc)
+        self._boxlist.append(tbc)
 
     def getniclist(self, boxname):
         """
@@ -73,7 +82,7 @@ class SecuredRepoMgr(object):
         :param boxname: Hostname of a box
         :return: A NICs list of the box
         """
-        for b in self._box:
+        for b in self._boxlist:
             if b.boxname == boxname:
                 return b.nic
 
@@ -84,9 +93,45 @@ class SecuredRepoMgr(object):
         :param boxname: Hostname of a box
         :return: Linux Account ID of the box whose the hostname "boxname"
         """
-        for b in self._box:
+        for b in self._boxlist:
             if b.boxname == boxname:
                 return b.accid
+
+    def load_seckey(self, salt):
+        self._secseed = salt
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256,
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+        p = raw_input("Input the password for secured repository: ")
+        self._seckey = base64.urlsafe_b64encode(kdf.derive(p))
+
+    def enc_file(self, org_file_path, enc_file_path):
+        rf = open(org_file_path, 'r')
+        l = rf.read(-1)
+        rf.close()
+
+        wf = open(enc_file_path, 'w')
+        f = Fernet(self._seckey)
+        wf.write(f.encrypt(l))
+        wf.close()
+
+    def dec_file(self, enc_file_path, dec_file_path):
+        rf = open(enc_file_path, 'r')
+        l = rf.read(-1)
+        rf.close()
+
+        wf = open(dec_file_path, 'w')
+        f = Fernet(self._seckey)
+        try:
+            wf.write(f.decrypt(l))
+        except cryptography.fernet.InvalidToken:
+            print "Password or Salt is not correct."
+
+        wf.close()
 
 
 class _BoxConf:
@@ -101,6 +146,7 @@ class _BoxConf:
         self.accid = ""
 
 if __name__ == "__main__":
+    """
     bn = "C1-GJ1"
     sr = SecuredRepoMgr()
 
@@ -113,3 +159,9 @@ if __name__ == "__main__":
 
     print sr.getaccid(bn)
     print sr.getniclist(bn)
+    """
+    sr = SecuredRepoMgr()
+    ts = os.urandom(16)
+    sr.load_seckey(ts)
+    sr.enc_file("./pgtmpl.yaml", "./pgtmpl.yaml.sec")
+    sr.dec_file("./pgtmpl.yaml.sec", "./pgtmpl.yaml.dec")
