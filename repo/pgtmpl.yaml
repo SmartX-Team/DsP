@@ -1,5 +1,5 @@
 ---
-boxname: GJ
+boxname: C1-GJ1
 type: Physical
 
 Software:
@@ -10,7 +10,7 @@ Software:
         Controller: JJ
         Installer: Full
 ---
-boxname: JJ
+boxname: C1-JJ1
 type: Physical
 
 Software:
@@ -19,4 +19,3 @@ Software:
         Mode: Controller
         Installer: Full
         Version: Mitaka
----
