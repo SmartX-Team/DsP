@@ -65,6 +65,9 @@ def prepare(boxlist):
 		return boxlist
 	elif isinstance (boxlist,infoelems.BoxInfo):
 		print 'TBI - currently, only works for list(BoxInfo)'
+	else:
+		print "%s in wrong data type - not BoxInfo nor list(BoxInfo)"%boxlist
+		print type(boxlist)
 		
 	
 
@@ -77,12 +80,12 @@ def verify(boxlist):
 	$(current directory)/
 	"""
 	installer_path = os.getcwd()
-	repo_dir	= path.join(installer_path,'')
+	inven_dir	= path.join(installer_path,'inven')
 	try:
-		f = open(repo_dir + "/AVAILABLE_SOFTWARE",'r')
+		f = open(inven_dir + "/AVAILABLE_SOFTWARE",'r')
 	except IOError:
 		print "Failed to open AVAILABLE_SOFTWARE "\
-				"\nIs it in %s?"%repo_dir	
+				"\nIs it in %s?"%inven_dir	
 		exit(-1)
 
 	sw_list = f.read().splitlines()
@@ -102,7 +105,7 @@ def verify(boxlist):
 				exit(-1)
 	
 	else:
-		print "%s in wrong data type - not BoxInfo nor list"%boxlist
+		print "%s in wrong data type - not BoxInfo nor list(BoxInfo)"%boxlist
 		print type(boxlist)
 		exit(-1)
 	
