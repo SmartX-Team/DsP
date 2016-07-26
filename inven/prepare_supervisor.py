@@ -4,30 +4,18 @@ import infoelems
 import yaml
 
 
-"""
-a = infoelems.BoxInfo()
-a.setname("aa")
-print a.getswinfo()
-
-test = path.join('/home/koko','wing')
-print test
-print os.getcwd()
-a_list = ['name1','name2']
-testname = 'name1'
-print testname not in a_list
-print "aa""bb"
-print type(a_list) is list
-"""
 
 
 """
-prepare (boxlist):
-   input value : list(BoxInfo)
-   with BoxInfo, filled with swname, swtype.
+prepare (swname, swtype):
+   input value : str(software_name) str(software_type)
+   return : SwInfo() with params
 """
 def prepare(swname, swtype):
 
    sw = infoelems.SwInfo()
+   sw.name = swname
+   sw.type = swtype
    installer_path = os.getcwd()
    swpath = path.join(installer_path,'inven', swname)
    
@@ -58,11 +46,13 @@ def prepare(swname, swtype):
       print "Error : More than one setting exists for %s:%s"%(swname, swtype) 
       exit(-1)
    return sw
-      
+    
    
-
-
-
+"""
+verify(swname)
+   input value : str(software_name)
+   return : None
+"""
 def verify(swname):
    installer_path = os.getcwd()
    inven_dir   = path.join(installer_path,'inven')
