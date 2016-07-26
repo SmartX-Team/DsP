@@ -15,3 +15,4 @@ class SwInfo:
     def __init__(self):
         self.name = ""
         self.params = dict()
+        self.type = ""
