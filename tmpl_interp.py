@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+
+import os.path
 import yaml
 
 from repo import repo
-from inven import inv_mgr
+from inven import prepare_supervisor as inv_mgr
 import infoelems
 
 
@@ -10,7 +12,6 @@ class TemplateInterpreter:
     def __init__(self):
         self._boxinfo = list()
         self._srmgr = repo.SecuredRepoMgr()
-        self._ivmgr = inv_mgr.InventoryManager()
 
     def interp_tmpl(self, tpath):
         """
@@ -73,10 +74,10 @@ class TemplateInterpreter:
         :return: A SwInfo instance filled with parameters parsed from Playground Template & Installer Inventory
         """
 
-        if not self._ivmgr.existsw(swname):
+        if not inv_mgr.verify(swname):
             return None
 
-        iswinfo = self._ivmgr.getswinfo(swname)
+        iswinfo = inv_mgr.prepare(swname, ysw_dict['SWType'])
 
         iswinfo_kl = iswinfo.params.keys()
         yswdict_kl = ysw_dict.keys()
@@ -91,7 +92,8 @@ class TemplateInterpreter:
 
 if __name__ == "__main__":
     interp = TemplateInterpreter()
-    p = "/home/jun/DsP-Installer/repo/pgtmpl.yaml"
+    # p = "/home/jun/DsP-Installer/repo/pgtmpl.yaml"
+    p = os.path.abspath(os.getcwd()) + "/repo/pgtmpl.yaml"
 
     bl = interp.interp_tmpl(p)
 

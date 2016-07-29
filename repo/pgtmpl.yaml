@@ -5,17 +5,19 @@ type: Physical
 Software:
     Ubuntu:
         Version: Xenial
+        SWType: MAAS
     OpenStack:
+        SWType: Full
         Mode: Compute
         Controller: JJ
-        Installer: Full
 ---
 boxname: C1-JJ1
 type: Physical
 
 Software:
     Ubuntu:
+        SWType: MAAS
     OpenStack:
+        SWType: Full
         Mode: Controller
-        Installer: Full
         Version: Mitaka
