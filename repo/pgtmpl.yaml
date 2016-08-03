@@ -2,22 +2,22 @@
 boxname: C1-GJ1
 type: Physical
 
-Software:
+software:
     Ubuntu:
-        Version: Xenial
-        SWType: MAAS
+        swtype: JJ
+        a: abcdefg
     OpenStack:
-        SWType: Full
-        Mode: Compute
-        Controller: JJ
+        swtype: Default
+        mode: Compute
+        controller: JJ
 ---
 boxname: C1-JJ1
 type: Physical
 
-Software:
+software:
     Ubuntu:
-        SWType: MAAS
+        swtype: GJ
     OpenStack:
-        SWType: Full
-        Mode: Controller
-        Version: Mitaka
+        swtype: Default
+        mode: Controller
+        version: Mitaka

@@ -2,6 +2,8 @@
 
 import os.path
 import yaml
+import glob
+import os
 
 from repo import repo
 from inven import prepare_supervisor as inv_mgr
@@ -31,7 +33,7 @@ class TemplateInterpreter:
                 print box['boxname'] + " is not in box.yaml"
                 continue
 
-            sd = dict(box['Software'])
+            sd = dict(box['software'])
             for k in sd.keys():
                 tsi = self._make_swinfo(k, dict(sd).get(k))
                 if not tsi:
@@ -71,22 +73,23 @@ class TemplateInterpreter:
 
         :param swname: A software title
         :param ysw_dict: A dictionary containing the "swname" Software's parameters defined in Playground Template
-        :return: A SwInfo instance filled with parameters parsed from Playground Template & Installer Inventory
+        :return: A SwInfo instance filled with parameters parse\d from Playground Template & Installer Inventory
         """
 
         if not inv_mgr.verify(swname):
             return None
 
-        iswinfo = inv_mgr.prepare(swname, ysw_dict['SWType'])
+        iswinfo = inv_mgr.prepare(swname, ysw_dict['swtype'])
 
         iswinfo_kl = iswinfo.params.keys()
         yswdict_kl = ysw_dict.keys()
+        yswdict_kl.remove('swtype')
 
         for k in yswdict_kl:
             if k in iswinfo_kl:
                 iswinfo.params[k] = ysw_dict[k]
             else:
-                print "Parameter " + k + "not defined in Installer"
+                print "Parameter " + k + " not defined in Installer"
 
         return iswinfo
 

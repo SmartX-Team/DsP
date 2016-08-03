@@ -1,0 +1,6 @@
+---
+swtype: Default
+Parameter:
+  mode:
+  version: Mitaka
+  controller:
