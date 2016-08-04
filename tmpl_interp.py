@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os.path
 import yaml
-import glob
 import os
 
 from repo import repo
-from inven import prepare_supervisor as inv_mgr
+from inven import inven
 import infoelems
 
 
@@ -14,6 +12,7 @@ class TemplateInterpreter:
     def __init__(self):
         self._boxinfo = list()
         self._srmgr = repo.SecuredRepoMgr()
+        self._ivmgr = inven.InventoryManager()
 
     def interp_tmpl(self, tpath):
         """
@@ -76,10 +75,10 @@ class TemplateInterpreter:
         :return: A SwInfo instance filled with parameters parse\d from Playground Template & Installer Inventory
         """
 
-        if not inv_mgr.verify(swname):
+        if not self._ivmgr.verify(swname):
             return None
 
-        iswinfo = inv_mgr.prepare(swname, ysw_dict['swtype'])
+        iswinfo = self._ivmgr.prepare(swname, ysw_dict['swtype'])
 
         iswinfo_kl = iswinfo.params.keys()
         yswdict_kl = ysw_dict.keys()
