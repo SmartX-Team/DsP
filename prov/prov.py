@@ -12,13 +12,19 @@ class ProvisionCoordinator:
     def __init__(self):
         self.prov_info = None
 
-    def showbox(self, box_info):
-        print "This threads will cover a box %s" % box_info.name
+    def _prov_box(self, box_info):
+        print "This thread will cover the provision of Box %s" % box_info.name
+        for sw in box_info.sw:
+            self._trigger_inst(sw_info=sw)
+            pass
+
+    def _trigger_inst(self, sw_info):
+        pass
 
     def prov_playground(self, prov_info):
         threads = []
         for box in prov_info:
-            t = threading.Thread(target=self.showbox, args=(box,))
+            t = threading.Thread(target=self._prov_box, args=(box,))
             threads.append(t)
             t.start()
 

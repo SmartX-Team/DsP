@@ -32,11 +32,12 @@ class TemplateInterpreter:
                 print box['boxname'] + " is not in box.yaml"
                 continue
 
-            sd = dict(box['software'])
-            for k in sd.keys():
-                tsi = self._make_swinfo(k, dict(sd).get(k))
+            swl = list(box['software'])
+            for sw in swl:
+                swname = sw.keys()[0]
+                tsi = self._make_swinfo(swname=swname, ysw_dict=sw.get(swname))
                 if not tsi:
-                    print k + " is not in Installer Inventory"
+                    print sw.keys() + " is not in Installer Inventory"
                     continue
                 tbi.sw.append(tsi)
 
@@ -94,7 +95,6 @@ class TemplateInterpreter:
 
 if __name__ == "__main__":
     interp = TemplateInterpreter()
-    # p = "/home/jun/DsP-Installer/repo/pgtmpl.yaml"
     p = os.path.abspath(os.getcwd()) + "/repo/pgtmpl.yaml"
 
     bl = interp.interp_tmpl(p)

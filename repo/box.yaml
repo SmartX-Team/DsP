@@ -2,7 +2,7 @@
 boxname: C1-GJ1
 account: netcs
 nic:
-    nic1:
+    - nic1:
         ipaddr: 210.114.90.3
         netmask: 255.255.255.0
         gateway: 210.114.90.1
@@ -11,7 +11,7 @@ nic:
 boxname: C1-JJ1
 account: netcs
 nic:
-    nic1:
+    - nic1:
         ipaddr: 210.114.90.35
         netmask: 255.255.255.0
         gateway: 210.114.90.1

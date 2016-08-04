@@ -4,6 +4,7 @@ import os
 from tmpl_interp import TemplateInterpreter
 from prov.prov import ProvisionCoordinator
 
+
 class DsPInstaller:
     def __init__(self):
         self._tmpl_interp = TemplateInterpreter()
