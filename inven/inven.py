@@ -43,6 +43,7 @@ class InventoryManager:
             print "Found : setting for %s:%s" % (swname, swtype)
             sw.name = swname
             sw.type = swtype
+            sw.path = os.path.join(swpath, sw_config[0]['execfile'])
             for par in sw_config[0]['parameter']:
                 sw.params[par] = sw_config[0]['parameter'][par]
         elif len(sw_config) == 0:  # No setting for swtype

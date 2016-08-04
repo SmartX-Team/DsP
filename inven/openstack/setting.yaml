@@ -1,5 +1,6 @@
 ---
 swtype: Default
+execfile: start.py
 parameter:
   mode:
   version: Mitaka

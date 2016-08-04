@@ -1,5 +1,6 @@
 ---
 swtype: GJ
+execfile: start.py
 
 parameter:
     a: Par_a(GJ)
@@ -11,6 +12,7 @@ parameter:
     
 ---
 swtype: JJ
+execfile: start.py
 
 parameter:
     a: Par_a(JJ)
@@ -21,6 +23,7 @@ parameter:
     
 ---
 swtype: Default
+execfile: start.py
 
 parameter:
     a: Par_a(Default)
