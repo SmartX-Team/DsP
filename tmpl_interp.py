@@ -2,7 +2,6 @@
 
 import yaml
 import os
-import unicodedata
 
 from repo import repo
 from inven import inven
