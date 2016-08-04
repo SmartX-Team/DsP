@@ -79,17 +79,20 @@ class TemplateInterpreter:
         if not self._ivmgr.verify(swname):
             return None
 
-        iswinfo = self._ivmgr.prepare(swname, ysw_dict['swtype'])
+        swtype = None
+        if ysw_dict.has_key('swtype'):
+            swtype = ysw_dict['swtype']
 
+        iswinfo = self._ivmgr.prepare(swname=swname, swtype=swtype)
         iswinfo_kl = iswinfo.params.keys()
-        yswdict_kl = ysw_dict.keys()
-        yswdict_kl.remove('swtype')
 
-        for k in yswdict_kl:
-            if k in iswinfo_kl:
-                iswinfo.params[k] = ysw_dict[k]
-            else:
-                print "Parameter " + k + " not defined in Installer"
+        if 'parameter' in ysw_dict.keys():
+            yswdict_kl = ysw_dict['parameter'].keys()
+            for k in yswdict_kl:
+                if k in iswinfo_kl:
+                    iswinfo.params[k] = ysw_dict['parameter'][k]
+                else:
+                    print "Parameter " + k + " not defined in Installer"
 
         return iswinfo
 

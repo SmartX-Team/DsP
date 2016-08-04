@@ -36,8 +36,11 @@ class InventoryManager:
         # YAML file load successful
         # Find setting for swtype in yaml configuration file
         if not swtype:
-            swtype = 'Default'
-        sw_config = [i for i in yaml.load_all(sw_setting) if i['swtype'] == swtype]
+            sw_config = list()
+            sw_config.append(yaml.load(sw_setting))
+            swtype = sw_config[0]['swtype']
+        else:
+            sw_config = [i for i in yaml.load_all(sw_setting) if i['swtype'] == swtype]
 
         if len(sw_config) == 1:
             print "Found : setting for %s:%s" % (swname, swtype)

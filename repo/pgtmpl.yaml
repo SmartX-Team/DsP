@@ -5,11 +5,12 @@ type: Physical
 software:
     - ubuntu:
         swtype: JJ
-        a: abcdefg
+        parameter:
+            a: abcdefg
     - openstack:
-        swtype: Default
-        mode: Compute
-        controller: JJ
+        parameter:
+            mode: Compute
+            controller: JJ
 ---
 boxname: C1-JJ1
 type: Physical
@@ -19,5 +20,6 @@ software:
         swtype: GJ
     - openstack:
         swtype: Default
-        mode: Controller
-        version: Mitaka
+        parameter:
+            mode: Controller
+            version: Mitaka
