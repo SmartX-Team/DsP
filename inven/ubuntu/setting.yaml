@@ -1,7 +1,7 @@
 ---
 swtype: GJ
 
-Parameter:
+parameter:
     a: Par_a(GJ)
     -bb: LPar_bb(GJ)
     -cc: =LPar_cc(JJ)
@@ -12,7 +12,7 @@ Parameter:
 ---
 swtype: JJ
 
-Parameter:
+parameter:
     a: Par_a(JJ)
     -bb: LPar_bb(JJ)
     -cc: =LPar_cc(JJ)
@@ -22,7 +22,7 @@ Parameter:
 ---
 swtype: Default
 
-Parameter:
+parameter:
     a: Par_a(Default)
     d: Par_d(Default)
     -e: LPar_e(Default)

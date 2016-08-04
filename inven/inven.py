@@ -43,8 +43,8 @@ class InventoryManager:
             print "Found : setting for %s:%s" % (swname, swtype)
             sw.name = swname
             sw.type = swtype
-            for par in sw_config[0]['Parameter']:
-                sw.params[par] = sw_config[0]['Parameter'][par]
+            for par in sw_config[0]['parameter']:
+                sw.params[par] = sw_config[0]['parameter'][par]
         elif len(sw_config) == 0:  # No setting for swtype
             print "Not Found : setting for %s:%s" % (swname, swtype)
             exit(-1)
