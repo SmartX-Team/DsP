@@ -2,6 +2,7 @@ from os import path as path
 import os
 import infoelems
 import yaml
+import logging
 
 
 class InventoryManager:
@@ -13,7 +14,8 @@ class InventoryManager:
         return cls._instance
 
     def __init__(self):
-        pass
+        logging.basicConfig(level=logging.DEBUG)
+        self._logger = logging.getLogger(__name__)
 
     def prepare(self, swname, swtype):
         """
@@ -29,8 +31,8 @@ class InventoryManager:
             f = open(swpath + '/setting.yaml', "r")
             sw_setting = f.read()
         except IOError:
-            print "Setting file IOError" \
-                  "\nIs it in %s?" % swpath
+            self._logger.error("Setting file IOError")
+            self._logger.error('Is it in %s?', swpath)
             exit(-1)
 
         # YAML file load successful
@@ -40,20 +42,22 @@ class InventoryManager:
             sw_config.append(yaml.load(sw_setting))
             swtype = sw_config[0]['swtype']
         else:
-            sw_config = [i for i in yaml.load_all(sw_setting) if i['swtype'] == swtype]
+            sw_config = [i for i in yaml.load_all(sw_setting)
+                         if i['swtype'] == swtype]
 
         if len(sw_config) == 1:
-            print "Found : setting for %s:%s" % (swname, swtype)
+            self._logger.info('Found: Setting for %s: %s', swname, swtype)
             sw.name = swname
             sw.type = swtype
             sw.path = os.path.join(swpath, sw_config[0]['execfile'])
             for par in sw_config[0]['parameter']:
                 sw.params[par] = sw_config[0]['parameter'][par]
         elif len(sw_config) == 0:  # No setting for swtype
-            print "Not Found : setting for %s:%s" % (swname, swtype)
+            self._logger.error('Not Found: Setting for %s:%s', swname, swtype)
             exit(-1)
         else:  # multiple setting for swtype in YAML exists
-            print "Error : More than one setting exists for %s:%s" % (swname, swtype)
+            self._logger.error('Error: More than one setting exists for %s:%s',
+                               swname, swtype)
             exit(-1)
 
         return sw
@@ -70,14 +74,14 @@ class InventoryManager:
         (_, dirnames, _) = next(os.walk(inven_dir), (None, [], None))
 
         if swname not in dirnames:
-            print "Directory for SW %s is not exist in Installer Inventory" % swname
+            self._logger.error('Directory for SW %s is not exist in Installer Inventory', swname)
             exit(-1)
 
         if not os.path.exists(path.join(inven_dir, swname, "setting.yaml")):
-            print "Failed to find setting.yaml for SW %s" % swname
-            print "Is it in %s?" % inven_dir
+            self._logger.error('Failed to find setting.yaml for SW %s', swname)
+            self._logger.error('Is it in %s?', inven_dir)
             exit(-1)
 
         # Out of loop : All software available
-        print "Software available"
+        self._logger.info('Software Available')
         return True

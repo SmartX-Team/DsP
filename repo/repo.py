@@ -7,6 +7,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import logging
 
 
 class SecuredRepoMgr(object):
@@ -28,6 +29,9 @@ class SecuredRepoMgr(object):
         self._seckey = None
         self._secseed = None
 
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.DEBUG)
+
     def existbox(self, boxname):
         """
         Check the box exists in Secured Repository by comparing Hostname
@@ -42,9 +46,9 @@ class SecuredRepoMgr(object):
             fr = fp.read()
             fp.close()
         except IOError:
-            print "Can't open Box Configuration File"
-            print "Please make box.yaml file and define your box's "\
-                  "Configuration by referring a guide."
+            self._logger.error("Can't open Box Configuration File")
+            self._logger.error("Please make box.yaml file and define your box's "\
+                               "Configuration by referring a guide.")
             exit(-1)
 
         byl = yaml.load_all(fr)
@@ -129,7 +133,7 @@ class SecuredRepoMgr(object):
         try:
             wf.write(f.decrypt(l))
         except cryptography.fernet.InvalidToken:
-            print "Password or Salt is not correct."
+            self._logger.error("Password or Salt is not correct.")
 
         wf.close()
 

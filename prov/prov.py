@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import threading
+import logging
 
 
 class ProvisionCoordinator:
@@ -13,8 +14,11 @@ class ProvisionCoordinator:
     def __init__(self):
         self.prov_info = None
 
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.DEBUG)
+
     def _prov_box(self, box_info):
-        print "This thread will cover the provision of Box %s" % box_info.name
+        self._logger.debug('This Thread will cover the provision of Box %s', box_info.name)
         for sw in box_info.sw:
             self._trigger_inst(sw_info=sw)
             pass

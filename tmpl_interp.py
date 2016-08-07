@@ -6,6 +6,7 @@ import os
 from repo import repo
 from inven import inven
 import infoelems
+import logging
 
 
 class TemplateInterpreter:
@@ -13,6 +14,9 @@ class TemplateInterpreter:
         self._boxinfo = list()
         self._srmgr = repo.SecuredRepoMgr()
         self._ivmgr = inven.InventoryManager()
+
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.INFO)
 
     def interp_tmpl(self, tpath):
         """
@@ -29,7 +33,7 @@ class TemplateInterpreter:
         for box in yaml.load_all(t):
             tbi = self._make_boxinfo(box)
             if not tbi:
-                print box['boxname'] + " is not in box.yaml"
+                self._logger.warn('%s is not in box.yaml...', box['boxname'])
                 continue
 
             swl = list(box['software'])
@@ -37,7 +41,7 @@ class TemplateInterpreter:
                 swname = sw.keys()[0]
                 tsi = self._make_swinfo(swname=swname, ysw_dict=sw.get(swname))
                 if not tsi:
-                    print sw.keys() + " is not in Installer Inventory"
+                    self._logger.warn('%s is not in Installer Inventory', swname)
                     continue
                 tbi.sw.append(tsi)
 
@@ -92,7 +96,7 @@ class TemplateInterpreter:
                 if k in iswinfo_kl:
                     iswinfo.params[k] = ysw_dict['parameter'][k]
                 else:
-                    print "Parameter " + k + " not defined in Installer"
+                    self._logger.warn('Parameter %s not defined in Installer', k)
 
         return iswinfo
 
