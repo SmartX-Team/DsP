@@ -1,0 +1,7 @@
+---
+- hosts: vagrant
+  name: test
+  remote_user: net
+  tasks:
+  - name: Copy file
+    copy: src=./data.txt dest=/home/net/data.txt owner=net group=net mode=0644
