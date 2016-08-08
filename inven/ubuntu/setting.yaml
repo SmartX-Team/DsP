@@ -7,7 +7,6 @@ parameter:
     -bb: LPar_bb(GJ)
     -cc: =LPar_cc(JJ)
     d:
-    -e:
 
     
 ---
@@ -19,7 +18,6 @@ parameter:
     -bb: LPar_bb(JJ)
     -cc: =LPar_cc(JJ)
     d: Par_d(JJ)
-    -e:
     
 ---
 swtype: Default

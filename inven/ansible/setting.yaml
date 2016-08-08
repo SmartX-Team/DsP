@@ -9,11 +9,10 @@ parameter:
 ---
 swtype: filecopy
 execfile: ansible-playbook
-args:
+args: filecopy.yaml
 
 parameter:
   i: ansible-host
   k:
   K:
-
-
+  
