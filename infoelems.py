@@ -14,6 +14,6 @@ class BoxInfo:
 class SwInfo:
     def __init__(self):
         self.name = ""
-        self.path = ""
+        self.execcmd = ""
         self.params = dict()
         self.type = ""

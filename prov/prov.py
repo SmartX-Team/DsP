@@ -12,7 +12,7 @@ class ProvisionCoordinator:
         return cls._instance
 
     def __init__(self):
-        self.prov_info = None
+        self._prov_info = None
 
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
@@ -21,14 +21,19 @@ class ProvisionCoordinator:
         self._logger.debug('This Thread will cover the provision of Box %s', box_info.name)
         for sw in box_info.sw:
             self._trigger_inst(sw_info=sw)
-            pass
 
     def _trigger_inst(self, sw_info):
-        pass
+        self._logger.debug("Start the installer %s", sw_info.name)
+
+        if "ansible" in sw_info.name:
+            self._logger.debug("Install Software with Ansible")
+        else:
+            self._logger.debug("Install Software without Ansible")
 
     def prov_playground(self, prov_info):
         threads = []
-        for box in prov_info:
+        self._prov_info = prov_info
+        for box in self._prov_info:
             t = threading.Thread(target=self._prov_box, args=(box,))
             threads.append(t)
             t.start()

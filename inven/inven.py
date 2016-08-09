@@ -14,7 +14,7 @@ class InventoryManager:
         return cls._instance
 
     def __init__(self):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         self._logger = logging.getLogger(__name__)
 
     def prepare(self, swname, swtype):
@@ -39,7 +39,7 @@ class InventoryManager:
         # Find setting for swtype in yaml configuration file
         if not swtype:
             sw_config = list()
-            sw_config.append(yaml.load(sw_setting))
+            sw_config.append((yaml.load_all(sw_setting)).next())
             swtype = sw_config[0]['swtype']
         else:
             sw_config = [i for i in yaml.load_all(sw_setting)
@@ -49,7 +49,8 @@ class InventoryManager:
             self._logger.info('Found: Setting for %s: %s', swname, swtype)
             sw.name = swname
             sw.type = swtype
-            sw.path = os.path.join(swpath, sw_config[0]['execfile'])
+            # sw.path = os.path.join(swpath, sw_config[0]['execfile'])
+            sw.path = sw_config[0]['execfile']
             for par in sw_config[0]['parameter']:
                 sw.params[par] = sw_config[0]['parameter'][par]
         elif len(sw_config) == 0:  # No setting for swtype

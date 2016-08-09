@@ -11,6 +11,9 @@ software:
         parameter:
             mode: Compute
             controller: JJ
+    - ansible:
+        parameter:
+            i: abc
 ---
 boxname: C1-JJ1
 type: Physical
