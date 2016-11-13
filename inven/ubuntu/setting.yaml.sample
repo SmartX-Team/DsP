@@ -1,0 +1,18 @@
+config:
+  maas_ip:
+  apikey:
+  executable: "start.py"
+
+parameter:
+  hostname:
+  account:
+    id:
+    pw:
+  nic:
+    -
+      macaddr:
+      ipaddr:
+      subnet:
+  image:
+    dist: ubuntu
+    version: 16.04

@@ -1,0 +1,4 @@
+oauth
+yaml
+flask
+httplib2
