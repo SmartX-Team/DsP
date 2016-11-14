@@ -7,25 +7,29 @@ import time
 
 
 class MaasInterface:
+    _instance = None
+
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(MaasInterface, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, __url, __apikey):
+    def __init__(self):
         self.maas_url = None
         self.resource_token = None
         self.consumer_token = None
 
-        if __url:
-            self.maas_url = __url
-        if __apikey:
-            self.set_token(__apikey)
-
-        self._logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger("MaasInterface")
         self._logger.setLevel(logging.DEBUG)
+        fm = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(fm)
+        self._logger.addHandler(ch)
 
-        return
+    def initizilize(self, __url, __apikey):
+        self.maas_url = __url
+        self.set_token(__apikey)
 
     def set_token(self, __apikey):
         if not __apikey:
@@ -107,24 +111,6 @@ class MaasInterface:
             time.sleep(5)
         return True
 
-    def _distro_mapping(self, __dist):
-        if "14.04" in __dist:
-            return 'trusty'
-        elif "14.10" in __dist:
-            return 'unicorn'
-        elif "15.04" in __dist:
-            return 'vervet'
-        elif "15.10" in __dist:
-            return 'werewolf'
-        elif "16.04" in __dist:
-            return 'xenial'
-        elif "16.10" in __dist:
-            return 'yak'
-        elif "17.04" in __dist:
-            return 'zapus'
-        else:
-            return __dist
-
     def get_machines(self):
         return self.get("machines/")
 
@@ -160,7 +146,8 @@ if __name__ == "__main__":
     apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:" \
              "rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
     maas_url = "http://116.89.190.141/MAAS/api/2.0/"
-    mif = MaasInterface(maas_url, apikey)
+    mif = MaasInterface()
+    mif.initizilize(maas_url, apikey)
 
 #    response = mif.get_machine('K1-GJ1-DataHub1')
 #    print response

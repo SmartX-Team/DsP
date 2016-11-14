@@ -1,7 +1,20 @@
----
-swtype: Default
-execfile: start.py
+name: openstack-full-installer
+target_software:
+  - openstack
+executable: "start.py"
+config:
+
+
 parameter:
-  mode:
-  version: Mitaka
-  controller:
+  hostname:
+  account:
+    id:
+    pw:
+  nic:
+    -
+      macaddr:
+      ipaddr:
+      subnet:
+  image:
+    dist: ubuntu
+    version: 16.04

@@ -7,16 +7,43 @@ from repo import repo
 from inven import inven
 import infoelems
 import logging
+from flask import Flask
+
+"""
+Required REST APIs for Template Interpreter.
+
+
+"""
+
+
+app = Flask(__name__)
+
+
+@app.route("/template/", methods=['GET'])
+def get_template_interpreter():
+    return "Template Interpreter is alive :)"
 
 
 class TemplateInterpreter:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(TemplateInterpreter, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
         self._boxinfo = list()
         self._srmgr = repo.SecuredRepoMgr()
         self._ivmgr = inven.InventoryManager()
 
-        self._logger = logging.getLogger(__name__)
-        self._logger.setLevel(logging.INFO)
+        self._logger = logging.getLogger("TemplateInterpreter")
+        self._logger.setLevel(logging.DEBUG)
+        fm = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(fm)
+        self._logger.addHandler(ch)
 
     def interp_tmpl(self, tpath):
         """
@@ -110,3 +137,7 @@ if __name__ == "__main__":
     print "-----------------------"
     for b in bl:
         print b
+
+tmpl_interp = TemplateInterpreter()
+tmpl_interp.initialize()
+app.run(port="22160")
