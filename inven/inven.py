@@ -18,8 +18,6 @@ Required REST APIs for Inventory Manager
     - GET supervisor's config
       (/inventory/supervisors/<string:supervisor_id>/config)
     - GET supervisor list (/inventory/supervisors/
-    - POST start supervisor
-      (/inventory/supervisor/deploy/ <supervisor_id, parameter>)
 
 APIs will be added
     POST add supervisor
@@ -61,13 +59,6 @@ def get_supervisor_parameter(supervisor_id):
             return yaml.dump(sv['parameter'])
     return "Can't found Supervisor whose ID "+supervisor_id + \
            ". Error Code: 404"
-
-
-@app.route("/inventory/supervisors/<string:supervisor_id>/install",
-           methods=['POST'])
-def set_supervisor_deployed(supervisor_id):
-    # request.data
-    return "400"
 
 
 class InventoryManager:

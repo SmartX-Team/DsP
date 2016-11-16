@@ -10,9 +10,21 @@ import logging
 from flask import Flask
 
 """
+Template Interpreter should have interfaces to Secured Repository Manager
+instance. Since Secured Repository Manager doesn't have any REST API,
+the Interpreter should be contact points to outside.
+
+Input: Box Setting File, PG Template File
+Output: Supervisor Parameters for the specific box
+
 Required REST APIs for Template Interpreter.
-
-
+    - GET Boxes list (/template/box)
+    - GET Box Details (/template/box/<string:hostname>
+    - GET Playground Template (/template/playground)
+    - POST set Playground Template (/template/playground/)
+      (template file path)
+    - POST interpret Playground Template (/template/playground/interpret)
+      (box template yaml, playground template yaml)
 """
 
 
@@ -24,6 +36,11 @@ def get_template_interpreter():
     return "Template Interpreter is alive :)"
 
 
+@app.route("/template/box", methods=['GET'])
+def get_box_list():
+    pass
+
+
 class TemplateInterpreter:
     _instance = None
 
@@ -33,9 +50,7 @@ class TemplateInterpreter:
         return cls._instance
 
     def __init__(self):
-        self._boxinfo = list()
-        self._srmgr = repo.SecuredRepoMgr()
-        self._ivmgr = inven.InventoryManager()
+        self._repo_manager = repo.SecuredRepoMgr()
 
         self._logger = logging.getLogger("TemplateInterpreter")
         self._logger.setLevel(logging.DEBUG)
@@ -129,7 +144,7 @@ class TemplateInterpreter:
 
 if __name__ == "__main__":
     interp = TemplateInterpreter()
-    p = os.path.abspath(os.getcwd()) + "/repo/pgtmpl.yaml"
+    p = os.path.abspath(os.getcwd()) + "/repo/playground.yaml"
 
     bl = interp.interp_tmpl(p)
 
@@ -138,6 +153,6 @@ if __name__ == "__main__":
     for b in bl:
         print b
 
-tmpl_interp = TemplateInterpreter()
-tmpl_interp.initialize()
+interpreter = TemplateInterpreter()
+interpreter.initialize()
 app.run(port="22160")

@@ -11,7 +11,7 @@ class DsPInstaller:
         self._prov_coordi = ProvisionCoordinator()
 
     def start(self):
-        tmpl_path = os.path.join(os.getcwd(), "repo", "pgtmpl.yaml")
+        tmpl_path = os.path.join(os.getcwd(), "repo", "playground.yaml")
         prov_info = self._tmpl_interp.interp_tmpl(tmpl_path)
         self._prov_coordi.prov_playground(prov_info)
 

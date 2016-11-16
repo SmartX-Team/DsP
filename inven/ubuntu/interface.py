@@ -82,7 +82,7 @@ class MaasInterface:
         while True:
             if mch[u'status'] is 6:
                 # Release the machine
-                print "Start to release"
+                self._logger.info("Start to release")
                 uri = "machines/" + mch['system_id'] + "/?op=release"
                 self.post(uri)
             elif mch[u'status'] is 4 and mch[u'power_state'] == 'on':
@@ -92,14 +92,13 @@ class MaasInterface:
                 self.post(uri, json.dump(tdict))
             elif mch[u'status'] is 4 and mch[u'power_state'] == u'off':
                 # Deploy Machine
-
-                self._logger.info("Start to Deploy")
+                self._logger.info("Allocate the machine "+__hostname)
                 uri = "machines/" + "/?op=allocate"
                 tdict['system_id'] = mch['system_id']
                 self.post(uri, json.dumps(tdict))
                 tdict.clear()
 
-                print "Start to Deploy"
+                self._logger.info("Start to deploy the machine "+__hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=deploy"
                 tdict['distro_series'] = __distro
                 self.post(uri, json.dumps(tdict))
