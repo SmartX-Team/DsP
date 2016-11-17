@@ -1,0 +1,5 @@
+priority:
+  - ubuntu
+  - openstack
+
+independent:

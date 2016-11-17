@@ -1,7 +1,7 @@
 import os
 import logging
 import yaml
-import inven.ubuntu.interface as maas_iface
+import inven.maas.interface as maas_iface
 
 
 class MaasSupervisor:
@@ -30,8 +30,9 @@ class MaasSupervisor:
         fp.close()
 
     def start(self, __params_str):
-        params = yaml.load(__params_str)
-        self._provisioning_machine(params)
+        _params = yaml.load(__params_str)
+        for box_param in _params:
+            self._provisioning_machine(box_param)
 
     def _provisioning_machine(self, __params):
 

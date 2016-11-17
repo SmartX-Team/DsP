@@ -1,7 +1,5 @@
-from os import path as path
 import os
-from flask import Flask, request
-import infoelems
+from flask import Flask
 import yaml
 import logging
 
@@ -17,7 +15,7 @@ Required REST APIs for Inventory Manager
       (/inventory/supervisors/<string:supervisor_id>/parameter)
     - GET supervisor's config
       (/inventory/supervisors/<string:supervisor_id>/config)
-    - GET supervisor list (/inventory/supervisors/
+    - GET supervisor list (/inventory/supervisors/)
 
 APIs will be added
     POST add supervisor
@@ -32,13 +30,28 @@ def get_manager_status():
     return yaml.dump(resp)
 
 
-@app.route("/inventory/supervisors/", methods=['GET'])
-def get_supervisors():
+@app.route("/inventory/supervisor/priority/", methods=['GET'])
+def get_software_priority():
+    return yaml.dump(inven_manager.software_priority)
+
+
+@app.route("/inventory/supervisor/", methods=['GET'])
+def get_supervisor_list():
     inven_manager.update_supervisors()
     return yaml.dump(inven_manager.supervisors_list)
+    # return yaml.dump(inven_manager.get_supervisors())
 
 
-@app.route("/inventory/supervisors/<string:supervisor_id>/setting/",
+@app.route("/inventory/supervisor<string:supervisor_id>", methods=['GET'])
+def get_supervisor_detail(supervisor_id):
+    for sv in inven_manager.supervisor_list:
+        if sv['supervisor_id'] == supervisor_id:
+            return yaml.dump(sv)
+    return "Can not found Supervisor whose ID "+supervisor_id + \
+           ". Error Code: 404"
+
+
+@app.route("/inventory/supervisor/<string:supervisor_id>/setting/",
            methods=['GET'])
 def get_supervisor_config(supervisor_id):
     for sv in inven_manager.supervisors_list:
@@ -50,7 +63,7 @@ def get_supervisor_config(supervisor_id):
            ". Error Code: 404"
 
 
-@app.route("/inventory/supervisors/<string:supervisor_id>/parameter",
+@app.route("/inventory/supervisor/<string:supervisor_id>/parameter",
            methods=['GET'])
 def get_supervisor_parameter(supervisor_id):
     for sv in inven_manager.supervisors_list:
@@ -71,6 +84,7 @@ class InventoryManager:
 
     def __init__(self):
         self.supervisors_list = list()
+        self.software_priority = dict()
 
         self._logger = logging.getLogger("InventoryManager")
         self._logger.setLevel(logging.DEBUG)
@@ -82,6 +96,18 @@ class InventoryManager:
 
     def initialize(self):
         self.update_supervisors()
+
+        p = os.path.abspath(os.getcwd()) + "/setting.yaml"
+        fp = open(p, mode='r')
+        t = fp.read(-1)
+        fp.close()
+        self.software_priority = yaml.load(t)
+
+    def get_supervisors(self):
+        _supervisor_dict = dict()
+        for sv in self.supervisors_list:
+            _supervisor_dict[sv['name']] = sv['supervisor_id']
+        return _supervisor_dict
 
     def update_supervisors(self):
         _p = os.path.abspath(os.getcwd())
@@ -99,9 +125,6 @@ class InventoryManager:
     def _add_supervisor_dict(self, __svcfg, __path):
         _svname = __svcfg['name']
 
-        # self.supervisors_list = sorted(self.supervisors_list,
-        # key=lambda k: k['supervisor_id'])
-
         for sv in self.supervisors_list:
             if sv['name'] == _svname:
                 self._logger.info("Install Supervisor " + _svname +
@@ -116,6 +139,8 @@ class InventoryManager:
 
         __svcfg['supervisor_id'] = str(k)
         __svcfg['path'] = __path
+        self._logger.info("Install Supervisor " + _svname +
+                          " is added with the key " + str(k))
         self.supervisors_list.append(__svcfg)
 
     def _sort_dict(self, __dict, __key):
@@ -123,4 +148,4 @@ class InventoryManager:
 
 inven_manager = InventoryManager()
 inven_manager.initialize()
-app.run(port="22161")
+app.run(port="22730")

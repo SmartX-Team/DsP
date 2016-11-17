@@ -1,4 +1,4 @@
-name: openstack-full-installer
+name: openstack-full-installer-installer
 target_software:
   - openstack
 executable: "start.py"

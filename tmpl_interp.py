@@ -4,10 +4,9 @@ import yaml
 import os
 
 from repo import repo
-from inven import inven
-import infoelems
 import logging
-from flask import Flask
+from flask import Flask, request
+import httplib2
 
 """
 Template Interpreter should have interfaces to Secured Repository Manager
@@ -36,9 +35,53 @@ def get_template_interpreter():
     return "Template Interpreter is alive :)"
 
 
-@app.route("/template/box", methods=['GET'])
-def get_box_list():
-    pass
+@app.route("/dsp/template/box/", methods=['POST'])
+def get_box_settings():
+    _cfg_path = request.data
+    if os.path.exists(_cfg_path):
+        _l = interpreter.get_box_settings(_cfg_path)
+        return yaml.dump(_l)
+    else:
+        return "The given path for Box Setting is not valid: "+_cfg_path
+
+
+@app.route("/dsp/template/playground/", methods=['POST'])
+def get_dsp_template():
+    _template_path = request.data
+    if os.path.exists(_template_path):
+        _l = interpreter.get_dsp_template(_template_path)
+        return yaml.dump(_l)
+    else:
+        return "The given path for Playground Template is not valid: " \
+               + _template_path
+
+
+@app.route("/dsp/template/interpret", methods=['POST'])
+def interpret_dsp_template():
+    interpreter.logger.info("Receive a request: interpret_dsp_template()")
+    interpreter.logger.info(request.data)
+
+    try:
+        y = yaml.load(request.data)
+    except yaml.YAMLError, exc:
+        if hasattr(exc, 'problem_mark'):
+            mark = exc.problem_mark
+            interpreter.logger.error("Error Position: (%s:%s)" %
+                              (mark.line + 1, mark.column + 1))
+            return None
+
+    if not interpreter.valid_box_setting(y[0]):
+        return "Yaml format for Box setting is not valid"
+    elif not interpreter.valid_dsp_template(y[1]):
+        return "DsP Template is not valid"
+
+    interpreter.interpret_dsp_template(y[0], y[1])
+    return "404"
+
+
+@app.route("/dsp/template/interpret/box/<string:hostname>", methods=['POST'])
+def interpret_dsp_template_for_box():
+    return "400"
 
 
 class TemplateInterpreter:
@@ -52,107 +95,92 @@ class TemplateInterpreter:
     def __init__(self):
         self._repo_manager = repo.SecuredRepoMgr()
 
-        self._logger = logging.getLogger("TemplateInterpreter")
-        self._logger.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger("TemplateInterpreter")
+        self.logger.setLevel(logging.DEBUG)
         fm = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         ch.setFormatter(fm)
-        self._logger.addHandler(ch)
+        self.logger.addHandler(ch)
 
-    def interp_tmpl(self, tpath):
+    def get_box_hostnames(self, __box_config_file):
+        self.logger.debug("Enter get_box function")
+        l = self._repo_manager.read_file(__box_config_file)
+
+        try:
+            _box_cfg = yaml.load(l)
+        except yaml.YAMLError, exc:
+            if hasattr(exc, 'problem_mark'):
+                mark = exc.problem_mark
+                self.logger.error("Error Position: (%s:%s)" %
+                                  (mark.line+1, mark.column+1))
+                return None
+
+        _box_name_list = list()
+        for box in _box_cfg:
+            if 'hostname' in box:
+                _box_name_list.append(box['hostname'])
+
+        self.logger.debug(_box_name_list)
+        return _box_name_list
+
+    def get_box_settings(self, __box_config_file):
+        self.logger.debug("Enter get_box_settings function")
+        return self._repo_manager.read_file(__box_config_file)
+
+    def get_dsp_template(self, __template_file):
+        self.logger.debug("Enter get_dsp_template function")
+        return self._repo_manager.read_file(__template_file)
+
+    def valid_box_setting(self, __box_setting):
+        return True
+
+    def valid_dsp_template(self, __dsp_template):
+        return True
+
+    def interpret_dsp_template(self, __box_setting, __dsp_template):
         """
-        Parsing the Playground Template and making an instance containing
-        all detailed information for automated provisioning, such as
-        targeted box address, installing Software, installers etc. .
+        make installer list
+        For each installer
+            make parameter list
 
-        :param tpath: The Playground Template's path
-        :return: A list of BoxInfo instances
+            for each box
+                extract required parameters from installer's setting.xml
+                extract parameter from box
+                fill empty value
+                add the filled parameter into the list
+            add parameter list
+
+        Get Supervisors list
+        Get Software Priority List
+        Map supervisors which can install each software to software key
         """
-        fp = open(tpath, 'r')
-        t = fp.read()
+        http = httplib2.Http()
+        resp, content = http.request(
+            "http://localhost:22730/inventory/supervisor/")
+        _supervisor_list = yaml.load(content)
 
-        for box in yaml.load_all(t):
-            tbi = self._make_boxinfo(box)
-            if not tbi:
-                self._logger.warn('%s is not in box.yaml...', box['boxname'])
-                continue
+        resp, content = http.request(
+            "http://localhost:22730/inventory/supervisor/priority")
+        _sw_prio = yaml.load(content)
 
-            swl = list(box['software'])
-            for sw in swl:
-                swname = sw.keys()[0]
-                tsi = self._make_swinfo(swname=swname, ysw_dict=sw.get(swname))
-                if not tsi:
-                    self._logger.warn('%s is not in Installer Inventory', swname)
-                    continue
-                tbi.sw.append(tsi)
+        map_sv_for_prio_sw = dict()
+        for prio_sw in _sw_prio['priority']:
+            sv_for_sw = list()
+            for sv in _supervisor_list:
+                if prio_sw in sv['target_software']:
+                    sv_for_sw.append(sv)
+            map_sv_for_prio_sw[prio_sw] = sv_for_sw
+        self.logger.debug(map_sv_for_prio_sw)
 
-            self._boxinfo.append(tbi)
-
-        return self._boxinfo
-
-    def _make_boxinfo(self, ybox_dict):
-        """
-        This method make a BoxInfo instance and return it to caller.
-        To make the instance, it interact with SecuredRepositoryManager instance.
-
-        :param ybox_dict: A dictionary variable parsed from Playground Template
-        :return: A BoxInfo instance
-        """
-        if not self._srmgr.existbox(ybox_dict['boxname']):
-            return None
-
-        tmpbinfo = infoelems.BoxInfo()
-        tmpbinfo.name = ybox_dict['boxname']
-        tmpbinfo.type = ybox_dict['type']
-        tmpbinfo.nic = self._srmgr.getniclist(ybox_dict['boxname'])
-        tmpbinfo.accid = self._srmgr.getaccid(ybox_dict['boxname'])
-        return tmpbinfo
-
-    def _make_swinfo(self, swname, ysw_dict):
-        """
-        This method checks the existence of a software, make a SwInfo instance and return it to caller.
-        To make the SwInfo instance, this method communcates with Installer Inventory instance.
-        A SwInfo instance returned from Inventory has all parameter variables, and their default value.
-        And parameters from the Template will modify default value of the SwInfo instance.
-        If making the SwInfo instance successes, then return the instance. If not, return None.
-
-        :param swname: A software title
-        :param ysw_dict: A dictionary containing the "swname" Software's parameters defined in Playground Template
-        :return: A SwInfo instance filled with parameters parse\d from Playground Template & Installer Inventory
-        """
-
-        if not self._ivmgr.verify(swname):
-            return None
-
-        swtype = None
-        if ysw_dict.has_key('swtype'):
-            swtype = ysw_dict['swtype']
-
-        iswinfo = self._ivmgr.prepare(swname=swname, swtype=swtype)
-        iswinfo_kl = iswinfo.params.keys()
-
-        if 'parameter' in ysw_dict.keys():
-            yswdict_kl = ysw_dict['parameter'].keys()
-            for k in yswdict_kl:
-                if k in iswinfo_kl:
-                    iswinfo.params[k] = ysw_dict['parameter'][k]
-                else:
-                    self._logger.warn('Parameter %s not defined in Installer', k)
-
-        return iswinfo
-
-if __name__ == "__main__":
-    interp = TemplateInterpreter()
-    p = os.path.abspath(os.getcwd()) + "/repo/playground.yaml"
-
-    bl = interp.interp_tmpl(p)
-
-    print ""
-    print "-----------------------"
-    for b in bl:
-        print b
+        map_sv_for_indep_sw = dict()
+        for indep_sw in _sw_prio['independent']:
+            sv_for_sw = list()
+            for sv in _supervisor_list:
+                if indep_sw in sv['target_software']:
+                    sv_for_sw.append(sv)
+            map_sv_for_indep_sw[indep_sw] = sv_for_sw
+        self.logger.debug(map_sv_for_indep_sw)
 
 interpreter = TemplateInterpreter()
-interpreter.initialize()
-app.run(port="22160")
+app.run(port="22732")

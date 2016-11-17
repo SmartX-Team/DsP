@@ -1,18 +1,24 @@
----
-boxname: C1-GJ1
-account: netcs
-nic:
+-
+  hostname: C1-GJ1
+  account:
+    id: netcs
+    pw: netcs007bang
+  nic:
     - nic1:
-        ipaddr: 210.114.90.3
-        netmask: 255.255.255.0
-        gateway: 210.114.90.1
-        dns: 8.8.8.8
----
-boxname: C1-JJ1
-account: netcs
-nic:
+      macaddr:
+      ipaddr: 210.114.90.3
+      netmask: 255.255.255.0
+      gateway: 210.114.90.1
+      dns: 8.8.8.8
+-
+  hostname: C1-JJ1
+  account:
+    id: netcs
+    pw: netcs007bang
+  nic:
     - nic1:
-        ipaddr: 210.114.90.35
-        netmask: 255.255.255.0
-        gateway: 210.114.90.1
-        dns: 8.8.8.8
+      macaddr:
+      ipaddr: 210.114.90.35
+      netmask: 255.255.255.0
+      gateway: 210.114.90.1
+      dns: 8.8.8.8
