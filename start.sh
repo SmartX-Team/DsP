@@ -9,15 +9,15 @@
 
 ## Variable Definition##
 MAAS_ID="root"
-INSTALLER_PATH="$HOME/dsp_installer"
+INSTALLER_PATH="$HOME/DsP-Installer"
 LOG_DIR="$INSTALLER_PATH/logs"
 CONF_DIR="$INSTALLER_PATH/conf"
 PG_TPL="$CONF_DIR/PLAYGROUND_TEMPLATE"
 
-if [ "$(id -u)" == "0" ]; then
-   echo "This script should be run in user account, not root" 1>&2
-   exit 1
-fi
+#if [ "$(id -u)" == "0" ]; then
+#   echo "This script should be run in user account, not root" 1>&2
+#   exit 1
+#fi
 
 if [ `(pwd)` != ${INSTALLER_PATH} ]; then
 	echo "You shouled execute this script in ${INSTALLER_PATH} directory!"

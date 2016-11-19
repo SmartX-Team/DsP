@@ -12,13 +12,10 @@
 
 BOX=$1
 
-INSTALLER_PATH="${HOME}/dsp_installer"
+INSTALLER_PATH="${HOME}/DsP-Installer"
 CONF_DIR="$INSTALLER_PATH/conf"
 INVENTORY_PATH="$INSTALLER_PATH/installer_inventory"
 PG_TPL="$CONF_DIR/PLAYGROUND_TEMPLATE"
-
-REPO_DIR=/usr/share/maas/web/static/maasrepo
-REPO_URL='http://210.114.90.8/MAAS/static/maasrepo'
 
 ##
 ##  Service Preparation

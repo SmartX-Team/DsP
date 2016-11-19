@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALLER_PATH="${HOME}/dsp_installer"
+INSTALLER_PATH="${HOME}/DsP-Installer"
 CONF_DIR="${INSTALLER_PATH}/conf"
 DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 UTIL_DIR="${INSTALLER_PATH}/utils"
@@ -56,7 +56,8 @@ do
 	## Execute common script for the software if it exists ##
 	FNAME="common_$(echo ${SW} | tr "[:upper:]" "[:lower:]").sh"
 	if [ -f "${DSP_INSTALLER_DIR}/${FNAME}" ]; then
-		bash ${DSP_INSTALLER_DIR}/${FNAME}
+		echo "Start to execute ${FNAME}"
+		# bash ${DSP_INSTALLER_DIR}/${FNAME}
 	fi
 
 
@@ -67,7 +68,8 @@ do
 		if [ ! -f "${DSP_INSTALLER_DIR}/${FNAME}" ]; then
 			echo "Pass"
 		else
-				INSTALL_TARGET_SW ${BOX} ${SW} &
+				echo "Start to execute ${FNAME}"
+				# INSTALL_TARGET_SW ${BOX} ${SW} &
 		fi
 		
 	done

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BOX="<BOX_NAME>"
+BOX="K1-GJ1-Small1"
 
 INSTALLER_PATH="${HOME}/DsP-Installer"
 CONF_DIR="${INSTALLER_PATH}/conf"
