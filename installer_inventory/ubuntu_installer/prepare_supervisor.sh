@@ -16,10 +16,15 @@ echo ""
 echo "Enter Prepare Ubuntu Supervisor Script"
 
 # MAAS Client Login --> common_ubuntu.sh
-if [ ! -f "${DSP_INSTALLER_PATH}/common_ubuntu.sh" ]; then
-	cat "${SUPERVISOR_DIR}/maas_cli_login.sh" > "${DSP_INSTALLER_PATH}/common_ubuntu.sh"
-	chmod 755 "${DSP_INSTALLER_PATH}/common_ubuntu.sh"
-	echo "common_ubuntu.sh"
+#if [ ! -f "${DSP_INSTALLER_PATH}/common_ubuntu.sh" ]; then
+#	cat "${SUPERVISOR_DIR}/maas_cli_login.sh" > "${DSP_INSTALLER_PATH}/common_ubuntu.sh"
+#	chmod 755 "${DSP_INSTALLER_PATH}/common_ubuntu.sh"
+#	echo "common_ubuntu.sh"
+#fi
+
+if [ ! -f "${DSP_INSTALLER_PATH}/maas_interface.py" ]; then
+	cp ${SUPERVISOR_DIR}/maas_interface.py ${DSP_INSTALLER_PATH}/maas_interface.py
+	chmod 755 ${DSP_INSTALLER_PATH}/maas_interface.py
 fi
 
 # Trigger MAAS to install Linux into a box --> ${BOX}_ubuntu_1.sh
