@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 BOX="<BOX_NAME>"
 
@@ -7,11 +7,10 @@ CONF_DIR="${INSTALLER_PATH}/conf"
 DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 MAAS_REPO_DIR="/usr/share/maas/web/static/maasrepo"
 
-bash "${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh"
-
+echo "Enter ubuntu_supervisor.sh for ${BOX}.sh"
 source ${CONF_DIR}/${BOX}
 
-echo "Enter ubuntu_supervisor.sh for BOX ${BOX}"
+#python ${DSP_INSTALLER_PATH}/maas_interface.py ${BOX}
 while [ 1 ]; do
 	nc -z -w 2 ${MGMT_IP_ADDRESS} 22
 	if [ $? -eq 0 ]; then
@@ -19,8 +18,8 @@ while [ 1 ]; do
 	fi 
 done
 
-	bash $INSTALLER_PATH/util/ssh_key_clean.sh $BOX > /dev/null
-	bash ${INSTALLER_PATH}/util/ssh_key_copy.sh $BOX
-#sudo bash ${INSTALLER_PATH}/util/ssh_key_copy.sh $BOX
+scp -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${MGMT_IP_ADDRESS} ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${MGMT_IP_ADDRESS}:~/${BOX}.sh
+#ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${MGMT_IP_ADDRESS} "sudo bash ~/${BOX}.sh"
+
 ###################  ubuntu_supervisor.sh  #############################
 ########################################################################

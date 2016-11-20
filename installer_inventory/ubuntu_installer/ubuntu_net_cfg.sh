@@ -1,5 +1,3 @@
-
-source /root/conf	
 NET_CONF_FILE="/etc/network/interfaces"
 
 DATA_INTERFACE=$(ifconfig -a | grep $DATA_MAC_ADDRESS | awk '{print $1}')

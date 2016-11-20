@@ -74,13 +74,14 @@ class MaasInterface:
         return None
 
     def deploy_machine(self, __hostname, __distro='xenial'):
-        mch = self.get_machine(__hostname)
-        if not mch:
-            return None
         tdict = dict()
-
         trial = 0
+
         while True:
+            mch = self.get_machine(__hostname)
+            if not mch:
+                return None
+
             if mch[u'status'] is 6:
                 # Release the machine
                 self._logger.info("Start to release")
@@ -139,7 +140,7 @@ class MaasInterface:
         else:
             body = None
         response = http.request(url, "POST", headers=headers, body=body)
-        print response
+        #print response
         return response
 
 def main():
@@ -150,7 +151,6 @@ def main():
         exit(-1)
 
     target_machine = sys.argv[1]
-    print target_machine
     
     apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:" \
              "rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
@@ -158,9 +158,10 @@ def main():
 
     mif = MaasInterface()
     mif.initizilize(maas_url, apikey)
+    print "(maas_interface.py): Start to install Ubuntu on "+target_machine
     #response = mif.get_machines()
     #print response
-    #response = mif.deploy_machine('K1-GJ1-DataHub1')
+    response = mif.deploy_machine(target_machine)
     #print response
 
 if __name__ == "__main__":

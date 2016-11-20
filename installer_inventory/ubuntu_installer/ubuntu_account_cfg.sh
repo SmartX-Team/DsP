@@ -1,4 +1,3 @@
-
 passwd root << EOF
 $PASSWD
 $PASSWD
