@@ -14,10 +14,10 @@ LOG_DIR="$INSTALLER_PATH/logs"
 CONF_DIR="$INSTALLER_PATH/conf"
 PG_TPL="$CONF_DIR/PLAYGROUND_TEMPLATE"
 
-#if [ "$(id -u)" == "0" ]; then
-#   echo "This script should be run in user account, not root" 1>&2
-#   exit 1
-#fi
+if [ "$(id -u)" != "0" ]; then
+   echo "This script should be run as root" 1>&2
+   exit 1
+fi
 
 if [ `(pwd)` != ${INSTALLER_PATH} ]; then
 	echo "You shouled execute this script in ${INSTALLER_PATH} directory!"
@@ -36,9 +36,6 @@ do
 	echo "$BOX SITE installation Procedure is being started"
 	echo -e "#####################################################\n\n"
 
-	sudo bash $INSTALLER_PATH/util/ssh_key_clean.sh $BOX > /dev/null
-	echo "	SSH KEYs are cleaned"
-
         # This Part check whether this site can be install
 		# DsP-Installer exclude boxes written in DONT_TOUCH_SITE.
 		# This can prevent from doing provisioning over production environment.
@@ -51,10 +48,9 @@ do
                 continue
         fi
 
-        #date > $LOG_DIR/${BOX}_test_time
-		# Prepare DsP-Installer
-		# Copy appropriate installers from installer_inventory to dsp_installer,
-		# then modify parameters inside copied installers. (picker.sh)
+	# Prepare DsP-Installer
+	# Copy appropriate installers from installer_inventory to dsp_installer,
+	# then modify parameters inside copied installers. (picker.sh)
         sudo bash $INSTALLER_PATH/installer_inventory/picker.sh $BOX
 done
 
@@ -78,6 +74,6 @@ echo "##########################################################################
 
 
 ####  Wrap-Up Part ####
-	sudo bash "${INSTALLER_PATH}/dsp_installer/clean.sh"
+#	sudo bash "${INSTALLER_PATH}/dsp_installer/clean.sh"
 ####
 
