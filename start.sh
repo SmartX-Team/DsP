@@ -8,7 +8,6 @@
 
 
 ## Variable Definition##
-MAAS_ID="root"
 INSTALLER_PATH="$HOME/DsP-Installer"
 LOG_DIR="$INSTALLER_PATH/logs"
 CONF_DIR="$INSTALLER_PATH/conf"
