@@ -18,6 +18,7 @@ INSTALL_TARGET_SW(){
 	echo "Enter INSTALL_TARGET_SW() for the installation of $FNAME"
 
 	source "${CONF_DIR}/${BOX}"
+	ssh-keygen -f "/root/.ssh/known_hosts" -R ${MGMT_IP_ADDRESS}
 
 	while [ 1 ]; do
 		
@@ -26,7 +27,7 @@ INSTALL_TARGET_SW(){
 		fi
 
 		##### Get status of the Target Box
-		BOX_STATUS=`ssh -o ConnectTimeout=2 ${USER_ACCOUNT}@${MGMT_IP_ADDRESS} "cat ~/.DsP_status"`
+		BOX_STATUS=`ssh -o ConnectTimeout=2 ubuntu@${MGMT_IP_ADDRESS} "cat ~/.DsP_status"`
 		if [ $? -eq 0 ]; then
 			echo "Installed Softwares in Box $BOX: $BOX_STATUS"
 
@@ -36,14 +37,12 @@ INSTALL_TARGET_SW(){
 				break;
 			fi
 		fi
-		sleep 30
+		sleep 5
 	done
-
 	##### Execute the install supervisor
-	ssh -o ConnectTimeout=2 ${USER_ACCOUNT}@${MGMT_IP_ADDRESS} "echo Installing > ~/.DsP_status"
+	ssh -oConnectTimeout=2 -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${MGMT_IP_ADDRESS} "echo Installing > ~/.DsP_status"
 	sudo bash ${DSP_INSTALLER_DIR}/${FNAME}
-	ssh -o ConnectTimeout=2 ${USER_ACCOUNT}@${MGMT_IP_ADDRESS} "echo Success > ~/.DsP_status"
-	
+	ssh -oConnectTimeout=2 -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${MGMT_IP_ADDRESS} "echo Success > ~/.DsP_status"
 }
 
 ## Check the current status of the Box, one by one.
@@ -57,7 +56,7 @@ do
 	FNAME="common_$(echo ${SW} | tr "[:upper:]" "[:lower:]").sh"
 	if [ -f "${DSP_INSTALLER_DIR}/${FNAME}" ]; then
 		echo "Start to execute ${FNAME}"
-		# bash ${DSP_INSTALLER_DIR}/${FNAME}
+		bash ${DSP_INSTALLER_DIR}/${FNAME}
 	fi
 
 
@@ -69,17 +68,11 @@ do
 			echo "Pass"
 		else
 				echo "Start to execute ${FNAME}"
-				# INSTALL_TARGET_SW ${BOX} ${SW} &
+				INSTALL_TARGET_SW ${BOX} ${SW} &
 		fi
-		
 	done
 
-	while [ 1 ]; do		
-		CHECK=`jobs -p`
-		if [ "${CHECK:-null}" == null ]; then
-			break;
-		fi
-	done
+	wait
 
 	END_TIME=$(date +%s)
 
