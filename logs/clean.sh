@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo rm -f *elapsed*
+sudo rm -f *elapsed* *.log

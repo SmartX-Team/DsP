@@ -29,9 +29,7 @@ echo -e "\\tnetmask $CTRL_IP_SUBNET\\n" >> $NET_CONF_FILE
 echo -e "\n"                                                            
 
 route del default 
-ifup $MGMT_INTERFACE
-ifup $CTRL_INTERFACE
-ifup $DATA_INTERFACE
+/etc/init.d/networking restart
 
 ######################  ubuntu_net_cfg.sh  #############################
 ########################################################################

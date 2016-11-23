@@ -26,7 +26,7 @@ INSTALL_SW_LIST=`cat $PG_TPL | sed -e "/TARGET_BOXES/d" -ne "/$BOX/,/}/p" | grep
 
 AVAIL_SW_LIST=`cat $CONF_DIR/AVAILABLE_SOFTWARE`
 
-echo "for Box $BOX, Software $INSTALL_SW_LIST will be installed"
+echo "picker (${BOX})	: for Box $BOX, Software $INSTALL_SW_LIST will be installed"
 
 # AVAILABLE_SOFTWARE file defines supported software list and its priority
 # So all software should be installed in the correct order defined in the file.
@@ -36,7 +36,7 @@ do
 
 	CHECK=`echo $INSTALL_SW_LIST | grep -i $SW`
 	if [ "${CHECK:-null}" != null ]; then
-		echo "*** You chose $SW for the $BOX box"
+		echo "picker (${BOX})	: You chose $SW for the $BOX box"
 		# Convert Capital letters to small letters	
 		INVEN_DIR=`echo $SW | tr '[:upper:]' '[:lower:]'`
 	else
@@ -56,7 +56,7 @@ do
 	# For example, if you choose a software OpenStack and Full-Version installer
 	# then the installer is placed in "openStack_full_installer"
 	INVEN_DIR="${INVENTORY_PATH}/${INVEN_DIR}_installer"
-	echo "Inventory DIR for Box $BOX: $INVEN_DIR"
+	echo "picker (${BOX})	: Inventory DIR for Box $BOX: $INVEN_DIR"
 
 	# In each installer directory, "prepare_supervisor.sh" file should be there.
 	# This file does actual copy & parameter modification.

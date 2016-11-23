@@ -9,7 +9,7 @@ DSP_INSTALLER_PATH="${INSTALLER_PATH}/dsp_installer"
 
 echo ""
 echo ""
-echo "Enter Prepare Ubuntu Supervisor Script"
+echo "prepare_supervisor	: Enter Prepare Ubuntu Supervisor Script"
 
 # MAAS Client Login --> common_ubuntu.sh
 #if [ ! -f "${DSP_INSTALLER_PATH}/common_ubuntu.sh" ]; then
@@ -34,9 +34,9 @@ sed -i "s/<BOX_NAME>/${BOX}/g" "${DSP_INSTALLER_PATH}/${BOX}_ubuntu.sh"
 #				--> ${BOX}.sh
 #				--> Copy to Web Server Directory
 cat ${CONF_DIR}/${BOX} > "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
-cat ${SUPERVISOR_DIR}/ubuntu_account_cfg.sh >> "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
 cat ${SUPERVISOR_DIR}/ubuntu_net_cfg.sh >> "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
 cat ${SUPERVISOR_DIR}/ubuntu_apt_cfg.sh >> "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
+cat ${SUPERVISOR_DIR}/ubuntu_account_cfg.sh >> "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
 cat ${SUPERVISOR_DIR}/ubuntu_add_cfg.sh >> "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"
 
 chmod 755 "${DSP_INSTALLER_PATH}/${BOX}_ubuntu.sh" "${DSP_INSTALLER_PATH}/${BOX}_ubuntu_1.sh"

@@ -76,38 +76,42 @@ class MaasInterface:
     def deploy_machine(self, __hostname, __distro='xenial'):
         tdict = dict()
         trial = 0
-
         while True:
             mch = self.get_machine(__hostname)
             if not mch:
                 return None
 
             if mch[u'status'] is 6:
-                # Release the machine
-                self._logger.info("Start to release")
+                # Deployed State
+                self._logger.info("Release the machine "+__hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=release"
                 self.post(uri)
             elif mch[u'status'] is 4 and mch[u'power_state'] == 'on':
-                # Turn off the machine
+                # Ready State / Power On
+                self._logger.info("Turn off the machine " + __hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=power_off"
                 tdict['stop_mode'] = 'soft'
                 self.post(uri, json.dump(tdict))
             elif mch[u'status'] is 4 and mch[u'power_state'] == u'off':
-                # Deploy Machine
+                # Ready State / Power Off
                 self._logger.info("Allocate the machine "+__hostname)
                 uri = "machines/" + "/?op=allocate"
                 tdict['system_id'] = mch['system_id']
                 self.post(uri, json.dumps(tdict))
                 tdict.clear()
-
-                self._logger.info("Start to deploy the machine "+__hostname)
+	    elif mch[u'status'] is 10 and mch[u'power_state'] == u'off':
+                # Allocated State / Power Off
+                self._logger.info("Deploy the machine "+__hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=deploy"
                 tdict['distro_series'] = __distro
                 self.post(uri, json.dumps(tdict))
                 tdict.clear()
+            elif mch[u'status'] is 9:
+                # Deploying State
+                self._logger.info("Deploying the machine " + __hostname)
                 break
-            if ++trial > 5:
-                self._logger.error('Cannot Deploy Machine within 25 Seconds')
+            if ++trial > 10:
+                self._logger.error('Cannot Deploy Machine within 50 Seconds')
                 return False
             time.sleep(5)
         return True

@@ -31,9 +31,9 @@ TARGET_BOXES=`cat $PG_TPL | grep TARGET_BOXES | sed -e "s/TARGET_BOXES//g" -e "s
 
 for BOX in $TARGET_BOXES
 do
-	echo "####################################################"
+	echo -e "\n####################################################"
 	echo "$BOX SITE installation Procedure is being started"
-	echo -e "#####################################################\n\n"
+	echo -e "#####################################################\n"
 
         # This Part check whether this site can be install
 		# DsP-Installer exclude boxes written in DONT_TOUCH_SITE.
@@ -63,12 +63,8 @@ sudo bash $INSTALLER_PATH/dsp_installer/dsp_installer.sh
 END_TIME=$(date +%s)
 
 echo ""
-echo ""
-echo ""
 echo "######################################################################################"
-echo ""
 echo "   OpenStack Cloud Construction takes $(($END_TIME - $START_TIME)) seconds to finish"
-echo ""
 echo "######################################################################################"
 
 
