@@ -156,9 +156,8 @@ def main():
 
     target_machine = sys.argv[1]
     
-    apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:" \
-             "rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
-    maas_url = "http://116.89.190.141/MAAS/api/2.0/"
+    apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
+    maas_url = "http://116.89.190.82/MAAS/api/2.0/"
 
     mif = MaasInterface()
     mif.initizilize(maas_url, apikey)

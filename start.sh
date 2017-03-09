@@ -8,7 +8,7 @@
 
 
 ## Variable Definition##
-INSTALLER_PATH="$HOME/DsP-Installer"
+INSTALLER_PATH=`pwd`
 LOG_DIR="$INSTALLER_PATH/logs"
 CONF_DIR="$INSTALLER_PATH/conf"
 PG_TPL="$CONF_DIR/PLAYGROUND_TEMPLATE"
@@ -58,7 +58,7 @@ done
 # Therefore, dsp_installer automates Playground	provisioning by excuting
 # prepared installers one by one.
 sudo bash $INSTALLER_PATH/dsp_installer/dsp_installer.sh
-
+sudo bash $INSTALLER_PATH/dsp_installer/clean.sh
 
 END_TIME=$(date +%s)
 
