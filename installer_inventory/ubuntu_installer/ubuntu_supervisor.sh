@@ -7,11 +7,14 @@ CONF_DIR="${INSTALLER_PATH}/conf"
 DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 LOG_PATH="${INSTALLER_PATH}/logs"
 
+MAAS_URL="http://210.125.84.235/MAAS/api/2.0/"
+MAAS_APIKEY="FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
+
 START_TIME=$(date +%s)
 echo "Enter ubuntu_supervisor.sh for ${BOX}.sh"
 source ${CONF_DIR}/${BOX}
 
-python ${DSP_INSTALLER_DIR}/maas_interface.py ${BOX}
+python ${DSP_INSTALLER_DIR}/maas_interface.py ${BOX} ${MAAS_URL} ${MAAS_APIKEY}
 while [ 1 ]; do
 	nc -z -w 2 ${MGMT_IP_ADDRESS} 22
 	if [ $? -eq 0 ]; then

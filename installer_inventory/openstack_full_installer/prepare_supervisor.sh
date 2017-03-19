@@ -7,7 +7,9 @@ SUPERVISOR_DIR="${INSTALLER_PATH}/installer_inventory/openstack_full_installer"
 DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 CONF_DIR=${INSTALLER_PATH}/conf
 PG_TPL=${CONF_DIR}/PLAYGROUND_TEMPLATE
-OPENSTACK_PASSWORD='fn!xo!ska!'
+#OPENSTACK_PASSWORD='fn!xo!ska!'
+OPENSTACK_PASSWORD='test'
+VERSION="newton"
 source $CONF_DIR/$BOX
 
 echo ""
@@ -28,7 +30,7 @@ if [ ${OPENSTACK_MODE} == Compute ]; then
 	CONTROLLER_MGMT_IP=$(cat ${CONF_DIR}/$CONTROLLER_NODE | grep MGMT_IP_ADDRESS | sed "s/MGMT_IP_ADDRESS=//g")
         CONTROLLER_CTRL_IP=$(cat ${CONF_DIR}/$CONTROLLER_NODE | grep CTRL_IP_ADDRESS | sed "s/CTRL_IP_ADDRESS=//g")
 
-        cat $SUPERVISOR_DIR/compute_newton.sh > $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
+        cat $SUPERVISOR_DIR/${VERSION}/compute.sh > $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
 	sed -i "s/<M_IP>/${MGMT_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
         sed -i "s/<C_IP>/${CTRL_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
         sed -i "s/<D_IP>/${DATA_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
@@ -40,7 +42,7 @@ else  # if the Box is OpenStack Controller
 
         echo "Prepare Supervisor ${BOX}	: Prepare Controller Node"
 
-        cat $SUPERVISOR_DIR/controller_newton.sh > $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
+        cat $SUPERVISOR_DIR/${VERSION}/controller.sh > $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
 	sed -i "s/<M_IP>/${MGMT_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
         sed -i "s/<D_IP>/${DATA_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh
         sed -i "s/<C_IP>/${CTRL_IP_ADDRESS}/g" $DSP_INSTALLER_DIR/${BOX}_openstack_1.sh

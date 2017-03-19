@@ -150,14 +150,17 @@ class MaasInterface:
 def main():
     target_machine = None
 
-    if len(sys.argv) is not 2:
-        print "Usage: ./maas_interface.py <Hostname>"
+    if len(sys.argv) is 4:
+        target_machine = sys.argv[1]
+        maas_url = sys.argv[2]
+        apikey = sys.argv[3]
+    elif len(sys.argv) is 2:
+        target_machine = sys.argv[1]
+        apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
+        maas_url = "http://210.125.84.235/MAAS/api/2.0/"
+    else:
+        print "Usage: ./maas_interface.py <Hostname> <MAAS_URL> <MAAS_APIKEY>"
         exit(-1)
-
-    target_machine = sys.argv[1]
-    
-    apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
-    maas_url = "http://116.89.190.82/MAAS/api/2.0/"
 
     mif = MaasInterface()
     mif.initizilize(maas_url, apikey)
