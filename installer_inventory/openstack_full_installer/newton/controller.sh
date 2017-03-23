@@ -768,16 +768,22 @@ ifconfig $INTERFACE 0
 ovs-vsctl add-port br-ex $INTERFACE
 
 sed -i "s/$INTERFACE/br-ex/g" /etc/network/interfaces
-sed -i "s/loopback/loopback\n\n\
-auto $INTERFACE/g" /etc/network/interfaces
+echo -e "auto $INTERFACE\n\
+iface $INTERFACE inet manual" >> /etc/network/interfaces
+echo -e "auto br-int\n\
+iface br-int inet manual" >> /etc/network/interfaces
+echo -e "auto br-tun\n\
+iface br-tun inet manual" >> /etc/network/interfaces
 
 echo "this is end for ethernet setting"
 
+sleep 5
 ifdown br-ex
 ifup br-ex
 ifconfig $INTERFACE up
 ifconfig br-int up
 ifconfig br-tun up
+
 }
 
 install_horizon(){
@@ -937,6 +943,26 @@ service heat-api-cfn restart
 service heat-engine restart
 }
 
+wrapup_control_for_demo() {
+. admin-openrc.sh
+
+openstack flavor create --public m1.tiny --id auto --ram 512 --disk 1 --vcpus 1
+openstack flavor create --public m1.small --id auto --ram 2048 --disk 20 --vcpus 1
+openstack flavor create --public m1.medium --id auto --ram 4096 --disk 40 --vcpus 2
+openstack flavor create --public m1.large --id auto --ram 8192 --disk 80 --vcpus 4
+openstack flavor create --public m1.xlarge --id auto --ram 16384 --disk 160 --vcpus 8
+
+neutron net-create --router:external --provider:network_type flat --provider:physical_network external external-network
+neutron subnet-create --name external-subnet --ip-version 4 --disable-dhcp --allocation-pool start=210.114.90.36,end=210.114.90.62 --gateway 210.114.90.1 --dns-nameserver 8.8.8.8 external-network 210.114.90.0/24
+
+. demo-openrc.sh
+neutron net-create test-network
+neutron subnet-create --name test-subnet --ip-version 4 --enable-dhcp --dns-nameserver 8.8.8.8 test-network 10.0.0.0/24
+neutron router-create test-router
+neutron router-gateway-set test-router external-network
+neutron router-interface-add test-router test-subnet
+}
+
 
 
 
@@ -962,3 +988,4 @@ install_nova
 install_neutron_w_dvr
 configure_ovs
 install_horizon
+wrapup_control_for_demo

@@ -7,8 +7,8 @@ CONF_DIR="${INSTALLER_PATH}/conf"
 DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 LOG_PATH="${INSTALLER_PATH}/logs"
 
-MAAS_URL="http://210.125.84.235/MAAS/api/2.0/"
-MAAS_APIKEY="FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
+MAAS_URL="http://210.114.90.8/MAAS/api/2.0/"
+MAAS_APIKEY="ZsWvbZ5fjLB5fnCQ6S:XytyA4VCVXbyapQrA3:XRWDNMzpJh8y7AJ4PPefRbrJhhwUegkP"
 
 START_TIME=$(date +%s)
 echo "Enter ubuntu_supervisor.sh for ${BOX}.sh"

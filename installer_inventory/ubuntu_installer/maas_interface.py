@@ -90,20 +90,20 @@ class MaasInterface:
                 # Ready State / Power On
                 self._logger.info("Turn off the machine " + __hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=power_off"
-                tdict['stop_mode'] = 'soft'
+                tdict[u'stop\_mode'] = u'soft'
                 self.post(uri, json.dump(tdict))
             elif mch[u'status'] is 4 and mch[u'power_state'] == u'off':
                 # Ready State / Power Off
                 self._logger.info("Allocate the machine "+__hostname)
                 uri = "machines/" + "/?op=allocate"
-                tdict['system_id'] = mch['system_id']
+                tdict[u'system_id'] = mch['system_id']
                 self.post(uri, json.dumps(tdict))
                 tdict.clear()
 	    elif mch[u'status'] is 10 and mch[u'power_state'] == u'off':
                 # Allocated State / Power Off
                 self._logger.info("Deploy the machine "+__hostname)
                 uri = "machines/" + mch['system_id'] + "/?op=deploy"
-                tdict['distro_series'] = __distro
+                tdict[u'distro_series'] = __distro
                 self.post(uri, json.dumps(tdict))
                 tdict.clear()
             elif mch[u'status'] is 9:

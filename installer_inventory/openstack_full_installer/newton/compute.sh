@@ -190,11 +190,18 @@ ifconfig $INTERFACE 0
 ovs-vsctl add-port br-ex $INTERFACE
 
 sed -i "s/$INTERFACE/br-ex/g" /etc/network/interfaces
-sed -i "s/loopback/loopback\n\n\
-auto $INTERFACE/g" /etc/network/interfaces
+echo -e "auto $INTERFACE\n\
+iface $INTERFACE inet manual" >> /etc/network/interfaces
+
+echo -e "auto br-int\n\
+iface br-int inet manual" >> /etc/network/interfaces
+
+echo -e "auto br-tun\n\
+iface br-tun inet manual" >> /etc/network/interfaces
 
 echo "this is end for ethernet setting"
 
+sleep 5
 ifdown br-ex
 ifup br-ex
 ifconfig $INTERFACE up
