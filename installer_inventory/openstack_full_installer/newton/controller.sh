@@ -176,7 +176,7 @@ echo "export OS_USER_DOMAIN_NAME=default" >> demo-openrc.sh
 echo "export OS_PROJECT_NAME=demo" >> demo-openrc.sh
 echo "export OS_USERNAME=demo" >> demo-openrc.sh
 echo "export OS_PASSWORD=$PASSWORD" >> demo-openrc.sh
-echo "export OS_AUTH_URL=http://$C_IP:5000/v3" >> demo-openrc.sh
+echo "export OS_AUTH_URL=http://$M_IP:5000/v3" >> demo-openrc.sh
 echo "export OS_IDENTITY_API_VERSION=3" >> demo-openrc.sh
 echo "export OS_IMAGE_API_VERSION=2" >> demo-openrc.sh
 
@@ -234,7 +234,7 @@ sudo apt-get install -y glance
 sed -i "s/#connection = <None>/connection = mysql+pymysql:\/\/glance:$PASSWORD@$C_IP\/glance/g" /etc/glance/glance-api.conf
 
 #◦In the [keystone_authtoken] and [paste_deploy] sections, configure Identity service access:
-sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -257,7 +257,7 @@ sed -i "s/#filesystem_store_datadir = \/var\/lib\/glance\/images/filesystem_stor
 sed -i "s/#connection = <None>/connection = mysql+pymysql:\/\/glance:$PASSWORD@$C_IP\/glance/g" /etc/glance/glance-registry.conf
 
 #◦In the [keystone_authtoken] and [paste_deploy] sections, configure Identity service access:
-sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -365,7 +365,7 @@ rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD\n\
 \n\
 [keystone_authtoken]\n\
-auth_uri = http:\/\/$C_IP:5000\n\
+auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -467,7 +467,7 @@ sed -i "s/#rabbit_host = localhost/rabbit_host = $C_IP\n\
 rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD/g" /etc/neutron/neutron.conf
 
-sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -644,7 +644,7 @@ sed -i "s/#rabbit_host = localhost/rabbit_host = $C_IP\n\
 rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD/g" /etc/neutron/neutron.conf
 
-sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -852,7 +852,7 @@ openstack service create --name heat-cfn \
 
 #4.Create the Orchestration service API endpoints:
 openstack endpoint create --region RegionOne \
-  orchestration public http://$C_IP:8004/v1/%\(tenant_id\)s
+  orchestration public http://$M_IP:8004/v1/%\(tenant_id\)s
 
 openstack endpoint create --region RegionOne \
   orchestration internal http://$C_IP:8004/v1/%\(tenant_id\)s
@@ -861,7 +861,7 @@ openstack endpoint create --region RegionOne \
   orchestration admin http://$C_IP:8004/v1/%\(tenant_id\)s
 
 openstack endpoint create --region RegionOne \
-  cloudformation public http://$C_IP:8000/v1
+  cloudformation public http://$M_IP:8000/v1
 
 openstack endpoint create --region RegionOne \
   cloudformation internal http://$C_IP:8000/v1
@@ -904,7 +904,7 @@ sed -i "s/#rabbit_host = localhost/rabbit_host = $C_IP\n\
 rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD/g" /etc/heat/heat.conf
 
-sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth_uri = http:\/\/$M_IP:5000\n\
 auth_url = http:\/\/$C_IP:35357\n\
 memcached_servers = $C_IP:11211\n\
 auth_type = password\n\
@@ -926,7 +926,7 @@ user_domain_name = default\n\
 auth_uri = http:\/\/$C_IP:35357\n\
 \n\
 [ec2authtoken]\n\
-auth_uri = http:\/\/$C_IP:5000/g" /etc/heat/heat.conf
+auth_uri = http:\/\/$M_IP:5000/g" /etc/heat/heat.conf
 
 sed -i "s/#debug = false/heat_metadata_server_url = http:\/\/$C_IP:8000\n\
 heat_waitcondition_server_url = http:\/\/$C_IP:8000\/v1\/waitcondition\n\

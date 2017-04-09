@@ -1,4 +1,4 @@
-#rm /etc/apt/apt.conf
+rm /etc/apt/apt.conf.d/*proxy
 
 apt-get update
 apt-get install -f -y ssh expect vim

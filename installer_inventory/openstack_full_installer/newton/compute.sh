@@ -40,7 +40,7 @@ rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD\n\
 \n\
 [keystone_authtoken]\n\
-auth_uri = http:\/\/$CTR_C_IP:5000\n\
+auth_uri = http:\/\/$CTR_M_IP:5000\n\
 auth_url = http:\/\/$CTR_C_IP:35357\n\
 memcached_servers = $CTR_C_IP:11211\n\
 auth_type = password\n\
@@ -104,7 +104,7 @@ sed -i "s/#auth_strategy = keystone/auth_strategy = keystone/g" /etc/neutron/neu
 sed -i "s/#rabbit_host = localhost/rabbit_host = $CTR_C_IP\n\
 rabbit_userid = openstack\n\
 rabbit_password = $PASSWORD/g" /etc/neutron/neutron.conf
-sed -i "s/#auth_uri = <None>/auth _uri = http:\/\/$CTR_C_IP:5000\n\
+sed -i "s/#auth_uri = <None>/auth _uri = http:\/\/$CTR_M_IP:5000\n\
 auth_url = http:\/\/$CTR_C_IP:35357\n\
 memcached_servers = $CTR_C_IP:11211\n\
 auth_type = password\n\
