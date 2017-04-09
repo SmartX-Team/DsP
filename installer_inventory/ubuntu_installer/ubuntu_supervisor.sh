@@ -8,7 +8,7 @@ DSP_INSTALLER_DIR="${INSTALLER_PATH}/dsp_installer"
 LOG_PATH="${INSTALLER_PATH}/logs"
 
 MAAS_URL="http://210.117.251.61/MAAS/api/2.0/"
-MAAS_APIKEY="FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
+MAAS_APIKEY="7jHJF3ra8bNuQ9UAnT:9GPARVmYGKvvwmWdkS:PSgTnyCVZb9fM43hS2FcF2F7v3sXLkMX"
 
 START_TIME=$(date +%s)
 echo "Enter ubuntu_supervisor.sh for ${BOX}.sh"
@@ -16,35 +16,36 @@ source ${CONF_DIR}/${BOX}
 
 python ${DSP_INSTALLER_DIR}/maas_interface.py ${BOX} ${MAAS_URL} ${MAAS_APIKEY}
 while [ 1 ]; do
-	nc -z -w 2 ${MGMT_IP_ADDRESS} 22
+	nc -z -w 2 ${DATA_IP_ADDRESS} 22
 	if [ $? -eq 0 ]; then
 		break;
 	fi
 	sleep 5 
 done
+ssh-keygen -f "/root/.ssh/known_hosts" -R ${DATA_IP_ADDRESS}
 ssh-keygen -f "/root/.ssh/known_hosts" -R ${MGMT_IP_ADDRESS}
-scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${MGMT_IP_ADDRESS}:~/${BOX}.sh
+scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${DATA_IP_ADDRESS}:~/${BOX}.sh
 if [ $? -ne 0 ]; then
 	sleep 10
-	scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${MGMT_IP_ADDRESS}:~/${BOX}.sh
+	scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${DATA_IP_ADDRESS}:~/${BOX}.sh
 fi
 
-ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${MGMT_IP_ADDRESS} "sudo bash ~/${BOX}.sh" > "${LOG_PATH}/${BOX}_ubuntu.log" 2>&1
+ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${DATA_IP_ADDRESS} "sudo bash ~/${BOX}.sh" > "${LOG_PATH}/${BOX}_ubuntu.log" 2>&1
 
-ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -q ${USER_ACCOUNT}@${MGMT_IP_ADDRESS} exit
+ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -q ${USER_ACCOUNT}@${DATA_IP_ADDRESS} exit
 
 if [ $? -ne 0 ]; then
 echo "ubuntu_supervisor (${BOX})	: copy ssh key"
 /usr/bin/expect <<EOD
 set timeout 5
-spawn ssh-copy-id -oStrictHostKeyChecking=no -i ${HOME}/.ssh/id_rsa ${USER_ACCOUNT}@${MGMT_IP_ADDRESS}
+spawn ssh-copy-id -oStrictHostKeyChecking=no -i ${HOME}/.ssh/id_rsa ${USER_ACCOUNT}@${DATA_IP_ADDRESS}
 expect "assword: "
 send "${PASSWD}\n"
 expect eof
 EOD
 fi
 
-ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ${USER_ACCOUNT}@${MGMT_IP_ADDRESS} "echo Success > ~/.DsP_status"
+ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ${USER_ACCOUNT}@${DATA_IP_ADDRESS} "echo Success > ~/.DsP_status"
 
 END_TIME=$(date +%s)
 echo "Ubuntu Installation for $BOX Box takes  $(($END_TIME - $START_TIME)) seconds to finish" > "${LOGS_DIR}/${BOX}_ubuntu_elapsed_time"
