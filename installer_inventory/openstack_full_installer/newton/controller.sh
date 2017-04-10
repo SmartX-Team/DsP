@@ -980,12 +980,12 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-update_package
-install_env_software
-install_keystone
-install_glance
-install_nova
+#update_package
+#install_env_software
+#install_keystone
+#install_glance
+#install_nova
 install_neutron_w_dvr
-configure_ovs
-install_horizon
-wrapup_control_for_demo
+#configure_ovs
+#install_horizon
+#wrapup_control_for_demo

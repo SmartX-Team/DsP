@@ -16,36 +16,37 @@ source ${CONF_DIR}/${BOX}
 
 python ${DSP_INSTALLER_DIR}/maas_interface.py ${BOX} ${MAAS_URL} ${MAAS_APIKEY}
 while [ 1 ]; do
-	nc -z -w 2 ${DATA_IP_ADDRESS} 22
+	nc -z -w 2 ${CTRL_IP_ADDRESS} 22
 	if [ $? -eq 0 ]; then
 		break;
 	fi
 	sleep 5 
 done
-ssh-keygen -f "/root/.ssh/known_hosts" -R ${DATA_IP_ADDRESS}
 ssh-keygen -f "/root/.ssh/known_hosts" -R ${MGMT_IP_ADDRESS}
-scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${DATA_IP_ADDRESS}:~/${BOX}.sh
+ssh-keygen -f "/root/.ssh/known_hosts" -R ${CTRL_IP_ADDRESS}
+ssh-keygen -f "/root/.ssh/known_hosts" -R ${DATA_IP_ADDRESS}
+scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${CTRL_IP_ADDRESS}:~/${BOX}.sh
 if [ $? -ne 0 ]; then
 	sleep 10
-	scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${DATA_IP_ADDRESS}:~/${BOX}.sh
+	scp -oStrictHostKeyChecking=no -oCheckHostIP=no ${DSP_INSTALLER_DIR}/${BOX}_ubuntu_1.sh ubuntu@${CTRL_IP_ADDRESS}:~/${BOX}.sh
 fi
 
-ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${DATA_IP_ADDRESS} "sudo bash ~/${BOX}.sh" > "${LOG_PATH}/${BOX}_ubuntu.log" 2>&1
+ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ubuntu@${CTRL_IP_ADDRESS} "sudo bash ~/${BOX}.sh" > "${LOG_PATH}/${BOX}_ubuntu.log" 2>&1
 
-ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -q ${USER_ACCOUNT}@${DATA_IP_ADDRESS} exit
+ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -q ${USER_ACCOUNT}@${CTRL_IP_ADDRESS} exit
 
 if [ $? -ne 0 ]; then
 echo "ubuntu_supervisor (${BOX})	: copy ssh key"
 /usr/bin/expect <<EOD
 set timeout 5
-spawn ssh-copy-id -oStrictHostKeyChecking=no -i ${HOME}/.ssh/id_rsa ${USER_ACCOUNT}@${DATA_IP_ADDRESS}
+spawn ssh-copy-id -oStrictHostKeyChecking=no -i ${HOME}/.ssh/id_rsa ${USER_ACCOUNT}@${CTRL_IP_ADDRESS}
 expect "assword: "
 send "${PASSWD}\n"
 expect eof
 EOD
 fi
 
-ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ${USER_ACCOUNT}@${DATA_IP_ADDRESS} "echo Success > ~/.DsP_status"
+ssh -oStrictHostKeyChecking=no -oCheckHostIP=no ${USER_ACCOUNT}@${CTRL_IP_ADDRESS} "echo Success > ~/.DsP_status"
 
 END_TIME=$(date +%s)
 echo "Ubuntu Installation for $BOX Box takes  $(($END_TIME - $START_TIME)) seconds to finish" > "${LOGS_DIR}/${BOX}_ubuntu_elapsed_time"

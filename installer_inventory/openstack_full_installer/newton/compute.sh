@@ -224,5 +224,5 @@ PASSWORD=<PASSWORD>
 
 update_package
 install_nova
-install_neutron_w_dvr
-configure_ovs
+#install_neutron_w_dvr
+#configure_ovs
