@@ -51,7 +51,7 @@ class SecuredRepoMgr(object):
             iterations=100000,
             backend=default_backend()
         )
-        p = raw_input("Input the password for secured repository: ")
+        p = input("Input the password for secured repository: ")
         self._seckey = base64.urlsafe_b64encode(kdf.derive(p))
 
     def read_file(self, __file_path):

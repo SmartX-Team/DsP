@@ -63,7 +63,7 @@ def interpret_dsp_template():
 
     try:
         y = yaml.load(request.data)
-    except yaml.YAMLError, exc:
+    except yaml.YAMLError as exc:
         if hasattr(exc, 'problem_mark'):
             mark = exc.problem_mark
             interpreter.logger.error("Error Position: (%s:%s)" %
@@ -109,7 +109,7 @@ class TemplateInterpreter:
 
         try:
             _box_cfg = yaml.load(l)
-        except yaml.YAMLError, exc:
+        except yaml.YAMLError as exc:
             if hasattr(exc, 'problem_mark'):
                 mark = exc.problem_mark
                 self.logger.error("Error Position: (%s:%s)" %

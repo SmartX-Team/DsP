@@ -1,0 +1,28 @@
+-
+  hostname: C1-GJ1
+  type: physical
+
+  software:
+      - ubuntu:
+          swtype: JJ
+          parameter:
+              a: abcdefg
+      - openstack:
+          parameter:
+              mode: Compute
+              controller: JJ
+      - ansible:
+          parameter:
+              i: abc
+-
+  boxname: C1-JJ1
+  type: physical
+
+  software:
+      - ubuntu:
+          swtype: GJ
+      - openstack:
+          swtype: Default
+          parameter:
+              mode: Controller
+              version: Mitaka

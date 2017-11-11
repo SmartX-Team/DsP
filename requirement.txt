@@ -2,3 +2,4 @@ oauth
 yaml
 flask
 httplib2
+cryptography

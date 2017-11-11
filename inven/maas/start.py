@@ -19,7 +19,7 @@ class MaasSupervisor:
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.DEBUG)
 
-    def initialize(self, __cfgfile="/setting.yaml"):
+    def initialize(self, __cfgfile="/setting.yaml.tmpl"):
         p = os.path.abspath(os.getcwd()) + __cfgfile
         fp = open(p, mode='r')
         self.setting = yaml.load(fp.read())['config']
