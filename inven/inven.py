@@ -97,7 +97,7 @@ class InventoryManager:
     def initialize(self):
         self.update_supervisors()
 
-        p = os.path.abspath(os.getcwd()) + "/setting.yaml.tmpl"
+        p = os.path.abspath(os.getcwd()) + "/agent.yaml"
         fp = open(p, mode='r')
         t = fp.read(-1)
         fp.close()
@@ -115,10 +115,10 @@ class InventoryManager:
                   os.path.isdir(os.path.join(_p, d))]
 
         for d in subdir:
-            if "setting.yaml.tmpl" in os.listdir(os.path.join(_p, d)):
-                self._logger.debug("Load setting.yaml.tmpl in " +
-                                   os.path.join(_p, d, "setting.yaml.tmpl"))
-                fp = open(os.path.join(_p, d, "setting.yaml.tmpl"), mode='r')
+            if "agent.yaml" in os.listdir(os.path.join(_p, d)):
+                self._logger.debug("Load agent.yaml in " +
+                                   os.path.join(_p, d, "agent.yaml"))
+                fp = open(os.path.join(_p, d, "agent.yaml"), mode='r')
                 svcfg = yaml.load(fp.read())
                 self._add_supervisor_dict(svcfg, os.path.join(_p, d))
 

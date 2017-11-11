@@ -1,9 +1,11 @@
 import os
 import logging
-import json
+import yaml
 import platform
 import distro
 import netifaces
+import apt
+import psutil
 
 class SmartX_Agent:
     def __init__(self):
@@ -31,82 +33,121 @@ class SmartX_Agent:
         # Load setting file
         try:
             file_path = os.path.join(os.getcwd(), "agent.yaml")
-            self._agent_cfg = self._get_json_obj_from(file_path)
-        except json.JSONDecodeError as exc:
+            self._agent_cfg = self._get_yaml_obj_from(file_path)
+        except yaml.YAMLError as exc:
             print(exc.args)
             exit(1)
-        except FileNotFoundError as exc:
+        except Exception as exc:
             print(exc.args)
 
-    def _get_json_obj_from(self, path):
+    def _get_yaml_obj_from(self, path):
         with open(path, "r") as stream:
-            json.loads(stream)
+            return yaml.load(stream)
 
     def check_conn(self):
         # Check connectivity to the center (Ping, and ??)
         pass
 
     def collect_all(self):
-        self._collected_data["OS"] = self._collect_os_info()
-        self._collected_data["HW"] = self._collect_hw_info()
-        self._collected_data["Networking"] = self._collect_networking_info()
-        self._collected_data["Package"] = self._collect_installed_packages()
-        self._collected_data["Process"] = self._collect_working_process()
+        if platform.system() == "Linux":
+            self.collect_all_linux()
+        else:
+            raise TypeError("Currently, this agent only supports Linux Operating Systems!")
 
-    def _collect_os_info(self):
+    def collect_all_linux(self):
+        self._collected_data["OS"] = self.collect_os_info()
+        self._collected_data["HW"] = self.collect_hw_info()
+        self._collected_data["Networking"] = self.collect_networking_info()
+        self._collected_data["Package"] = self.collect_installed_packages()
+        self._collected_data["Process"] = self.collect_working_process()
+
+    def collect_os_info(self):
         os_info = dict()
-        os_info["machine"] = platform.machine()
-        os_info["node"] = platform.node()
-        os_info["platform"] = platform.platform()
-        os_info["processor"] = platform.processor()
-        os_info["release"] = platform.release()
-        os_info["system"] = platform.system()
-        os_info["version"] = platform.version()
-        os_info["uname"] = platform.uname()
-        os_info["distro"] = distro._distro
+        os_info["type"] = platform.system() # Linux / Windows
+        os_info["distro"] = distro.id()
+        os_info["version"] = distro.version()
+        os_info["codename"] = distro.codename()
+        os_info["arch"] = platform.machine() # Architecture
+        os_info["kernel_version"] = platform.release() # Kernel version
         return os_info
 
-    def _collect_hw_info(self):
-        pass
+    def collect_hw_info(self):
+        hw_info = dict()
+        self._collect_cpu_info(hw_info)
+        self._collect_mem_info(hw_info)
+        self._collect_disk_info(hw_info)
+        return hw_info
 
-    def _collect_networking_info(self):
+    def _collect_cpu_info(self, hw_info):
+        hw_info["cpu_phy_count"] = psutil.cpu_count()
+        hw_info["cpu_log_count"] = psutil.cpu_count(logical=False)
+        hw_info["cpu_used"] = psutil.cpu_percent()
+
+    def _collect_mem_info(self, hw_info):
+        mem_info = psutil.virtual_memory()
+        hw_info["mem_total"] = mem_info.total
+        hw_info["mem_used"] = mem_info.used
+        hw_info["mem_free"] = mem_info.available
+
+    def _collect_disk_info(self, hw_info):
+        disk_info = psutil.disk_usage('/')
+        hw_info["storage_total"] = disk_info.total
+        hw_info["storage_used"] = disk_info.used
+        hw_info["storage_free"] = disk_info.free
+
+    def collect_networking_info(self):
         net_info = dict()
-        # Collect belows
-        # 1. NIC lists
-        # 2. IP address of each NIC
-        # 3. MAC address of each NIC
-        # 4. Networking Namespaces?
-        net_info["interface"] = netifaces.interfaces()
-        net_info["address"] = netifaces.ifaddresses()
-        net_info["gateway"] = netifaces.gateways()
+        net_info["interfaces"] = self._collect_net_interfaces_info()
         return net_info
 
-    def _collect_installed_packages(self):
-        pkg_info = dict()
-        if platform.system() is "linux":
-            pass
-        else:
-            pass
-        # Collect belows
-        # 1. Package Names
-        # 2. Package Versions
-        return pkg_info
+    def _collect_net_interfaces_info(self):
+        ifaces = dict()
+        for dev in netifaces.interfaces():
+            ifaces[dev] = self._get_dev_addr(dev)
+        return ifaces
 
-    def _get_package_list_with_apt(self):
-        pass
+    def _get_dev_addr(self, dev):
+        customized_addr_list = dict()
+        org_addr_list = netifaces.ifaddresses(dev)
+        customized_addr_list["ipv4"] = self._get_dev_ipv4_addr_from(org_addr_list)
+        customized_addr_list["mac"] = self._get_dev_mac_addr_from(org_addr_list)
+        return customized_addr_list
+
+    def _get_dev_ipv4_addr_from(self, org_addr_list):
+        return org_addr_list[2]
+
+    def _get_dev_mac_addr_from(self, org_addr_list):
+        return org_addr_list[17]
+
+    def collect_installed_packages(self):
+        if distro.id() in ["linuxmint"]:
+            return self._get_package_list_using_apt()
+        else:
+            raise TypeError("" + distro.id() + " distribution is not supported yet!")
+
+    def _get_package_list_using_apt(self):
+        installed_pkgs_info = dict()
+        all_apt_pkgs = apt.Cache()
+        for pkg in all_apt_pkgs:
+            if pkg.installed:
+                installed_pkgs_info[pkg.name] = {"version": pkg.installed.version}
+        return installed_pkgs_info
 
     def _get_package_list_with_yum(self):
         pass
 
-    def _collect_working_process(self):
+    def collect_working_process(self):
         proc_info = dict()
-        # Collect belows
-        # 1. Working Process list
-        # 2. Working Systemd Services
+        for proc in psutil.process_iter():
+            proc_info[proc.pid] = {"name": proc.name()}
         return proc_info
 
     def report(self):
-        json.dumps(print(self._collected_data))
+        print self._collected_data
+        try:
+            print yaml.safe_dump(self._collected_data, default_flow_style=False)
+        except yaml.YAMLError as exc:
+            print(exc.args)
 
 
 if __name__ == "__main__":

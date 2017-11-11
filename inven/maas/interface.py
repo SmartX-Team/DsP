@@ -33,7 +33,7 @@ class MaasInterface:
 
     def set_token(self, __apikey):
         if not __apikey:
-            self._logger.error("API Key for MAAS is missing in setting.yaml.tmpl")
+            self._logger.error("API Key for MAAS is missing in agent.yaml")
             return -1
         keys = __apikey.split(':')
         resource_tok_string = "oauth_token_secret=%s&oauth_token=%s" % \
