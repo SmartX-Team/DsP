@@ -1,7 +1,7 @@
 from ..installer_base import InstallerBase
 
 
-class AnsibleInstaller(InstallerBase):
+class OpenStackInstaller(InstallerBase):
     def initialize(self, setting_file):
         pass
 

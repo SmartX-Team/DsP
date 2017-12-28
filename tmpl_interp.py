@@ -93,7 +93,7 @@ class TemplateInterpreter:
         return cls._instance
 
     def __init__(self):
-        self._repo_manager = repo.SecuredRepoMgr()
+        self._repo_manager = repo.StoreManager()
 
         self.logger = logging.getLogger("TemplateInterpreter")
         self.logger.setLevel(logging.DEBUG)

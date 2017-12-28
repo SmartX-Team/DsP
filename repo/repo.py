@@ -12,7 +12,7 @@ import logging
 
 class StoreManager(object):
     """
-    Secured Repository Manager
+    Secured Store Manager
     This class provides secured management of configuration files for
     automated provisioning (e.g. Playground Template, Box Configuration file)
     and DsP-Installer's Operation.

@@ -10,16 +10,20 @@ from prov.prov import ProvisionCoordinator
 class DsPInstaller:
     def __init__(self):
         self._logger = None
-        self._init_log()
 
-        self._box_info = None
-        self._dsp_cfg = None
-        self._pg_tmpl = None
+        self._boxes_info = None
+        self._dsp_setting = None
+        self._template = None
 
+        self._tmpl_interp = None
+        self._prov_coordi = None
+
+    def initialize(self):
+        self._initialize_logger()
         self._tmpl_interp = TemplateInterpreter()
         self._prov_coordi = ProvisionCoordinator()
 
-    def _init_log(self):
+    def _initialize_logger(self):
         self.logger = logging.getLogger("ovn")
         self.logger.setLevel(logging.DEBUG)
         fm = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s() - %(message)s')
@@ -46,11 +50,11 @@ class DsPInstaller:
 
     def _load_dsp_setting(self):
         file_path = os.path.join(os.getcwd(), "setting.yaml")
-        self._dsp_cfg = self._get_yaml_obj_from(file_path)
+        self._dsp_setting = self._get_yaml_obj_from(file_path)
 
     def _load_box_info(self):
         file_path = os.path.join(os.getcwd(), "repo", "box.yaml")
-        self._box_info = self._get_yaml_obj_from(file_path)
+        self._boxes_info = self._get_yaml_obj_from(file_path)
 
     def _load_playground_template(self):
         self._read_playground_template_file()
@@ -59,7 +63,7 @@ class DsPInstaller:
 
     def _read_playground_template_file(self):
         file_path = os.path.join(os.getcwd(), "repo", "playground.yaml")
-        self._pg_tmpl = self._get_yaml_obj_from(file_path)
+        self._template = self._get_yaml_obj_from(file_path)
 
     def _parse_playground_template(self):
         pass

@@ -6,8 +6,8 @@ import json
 import time
 from .. import exceptions
 
-class MaasInterface:
 
+class MaasInterface:
     # For singleton design
     _instance = None
 
@@ -17,12 +17,17 @@ class MaasInterface:
         return cls._instance
 
     def __init__(self, maas_ip, apikey):
-        self.maas_url = "http://{}/MAAS/api/2.0/".format(maas_ip)
-        self.resource_token = None
-        self.consumer_token = None
-        self._set_maas_token(self._setting["config"]["apikey"])
+        self._maas_url = None
+        self._resource_token = None
+        self._consumer_token = None
+        self._logger = None
 
+        self.initialize(maas_ip, apikey)
+
+    def initialize(self, maas_ip, apikey):
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._maas_url = "http://{}/MAAS/api/2.0/".format(maas_ip)
+        self._set_maas_token(apikey)
 
     def _set_maas_token(self, _apikey):
         if not _apikey:
@@ -30,8 +35,8 @@ class MaasInterface:
                                                                       "API Key for MAAS is missing in setting.yaml")
         keys = _apikey.split(':')
         resource_tok_string = "oauth_token_secret=%s&oauth_token=%s" % (keys[2], keys[1])
-        self.resource_token = oauth.OAuthToken.from_string(resource_tok_string)
-        self.consumer_token = oauth.OAuthConsumer(keys[0], "")
+        self._resource_token = oauth.OAuthToken.from_string(resource_tok_string)
+        self._consumer_token = oauth.OAuthConsumer(keys[0], "")
 
     def deploy_machine_by(self, _hostname, _distro='xenial'):
         target_machine = self.get_machine_by(_hostname)
@@ -90,31 +95,31 @@ class MaasInterface:
 
     def _http_get(self, _uri):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token \
-            (self.consumer_token,
-             token=self.resource_token,
-             http_url=self.maas_url,
+            (self._consumer_token,
+             token=self._resource_token,
+             http_url=self._maas_url,
              parameters={'oauth_nonce': uuid.uuid4().hex})
         oauth_request.sign_request(oauth.OAuthSignatureMethod_PLAINTEXT(),
-                                   self.consumer_token,
-                                   self.resource_token)
+                                   self._consumer_token,
+                                   self._resource_token)
 
         headers = oauth_request.to_header()
-        url = "%s%s" % (self.maas_url, _uri)
+        url = "%s%s" % (self._maas_url, _uri)
         http = httplib2.Http()
         return http.request(url, "GET", headers=headers, body=None)
 
     def _http_post(self, _uri, _body=None):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token\
-            (self.consumer_token,
-             token=self.resource_token,
-             http_url=self.maas_url,
+            (self._consumer_token,
+             token=self._resource_token,
+             http_url=self._maas_url,
              parameters={'oauth_nonce': uuid.uuid4().hex})
         oauth_request.sign_request(oauth.OAuthSignatureMethod_PLAINTEXT(),
-                                   self.consumer_token,
-                                   self.resource_token)
+                                   self._consumer_token,
+                                   self._resource_token)
 
         headers = oauth_request.to_header()
-        url = "%s%s" % (self.maas_url, _uri)
+        url = "%s%s" % (self._maas_url, _uri)
         http = httplib2.Http()
 
         if _body:
