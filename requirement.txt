@@ -1,5 +1,5 @@
 oauth
-yaml
+PyYaml
 flask
 httplib2
 cryptography

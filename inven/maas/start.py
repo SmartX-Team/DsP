@@ -1,33 +1,65 @@
 import os
 import logging
 import yaml
-import inven.maas.interface as maas_iface
+import interface
+from ..installer_base import InstallerBase
 
 
-class MaasSupervisor:
+class MAASInstaller(InstallerBase):
+
+    # For singleton design
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(MaasSupervisor, cls).__new__(cls)
+            cls._instance = super(MAASInstaller, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
-        self.maasif = None
+        self.interface = None
         self.setting = None
 
-        self._logger = logging.getLogger(__name__)
-        self._logger.setLevel(logging.DEBUG)
+        self._logger = None
+        self._initialize_logger()
 
-    def initialize(self, __cfgfile="/agent.yaml"):
-        p = os.path.abspath(os.getcwd()) + __cfgfile
-        fp = open(p, mode='r')
-        self.setting = yaml.load(fp.read())['config']
-        self.maasif = maas_iface.MaasInterface()
-        self.maasif.initizilize(
-            "http://"+self.setting['maas_ip'] + "/MAAS/api/2.0/",
-            self.setting['apikey'])
-        fp.close()
+    def _initialize_logger(self):
+        self._logger = logging.getLogger("DsP")
+        self._logger.setLevel(logging.DEBUG)
+        fm = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s() - %(message)s')
+        sh = logging.StreamHandler()
+        sh.setFormatter(fm)
+        self._logger.addHandler(sh)
+
+    def initialize(self, _setting_file="setting.yaml"):
+        self._load_maas_setting(_setting_file)
+        self._create_maas_interface()
+
+    def _load_maas_setting(self, _setting_file):
+        p = os.path.abspath(os.getcwd()) + "/" + _setting_file
+        self.setting = self._read_yaml_file(p)
+
+    def _create_maas_interface(self):
+        maas_ip = self.setting['config']['maas_ip']
+        apikey = self.setting['config']['apikey']
+        self.interface = interface.MaasInterface(maas_ip, apikey)
+
+    def install(self, template):
+        pass
+
+    def uninstall(self, template):
+        pass
+
+    def update(self, template):
+        pass
+
+    def is_available(self):
+        pass
+
+    def validate_template(self, template):
+        pass
+
+    def get_setting(self):
+        pass
 
     def start(self, __params_str):
         _params = yaml.load(__params_str)
@@ -40,7 +72,7 @@ class MaasSupervisor:
         _dist = __params['image']['dist']
         _version = __params['image']['version']
 
-        machine = self.maasif.get_machine(_hostname)
+        machine = self.interface.get_machine_by(_hostname)
 
         if not machine:
             return
@@ -50,7 +82,7 @@ class MaasSupervisor:
             _dist = _dist+_version
         else:
             _dist = None
-        self.maasif.deploy_machine(_hostname, _dist)
+        self.interface.deploy_machine_by(_hostname, _dist)
 
     def _ubuntu_distro_mapping(self, __dist):
         if "14.04" in __dist:
@@ -70,8 +102,23 @@ class MaasSupervisor:
         else:
             return __dist
 
+    def _read_yaml_file(self, _file):
+        # Parse the data from YAML template.
+        with open(_file, 'r') as stream:
+            try:
+                file_str = stream.read()
+                self._logger.info("Parse YAML from the file: \n" + file_str)
+                return yaml.load(file_str)
+            except yaml.YAMLError as exc:
+                if hasattr(exc, 'problem_mark'):
+                    mark = exc.problem_mark
+                    self._logger.error(("YAML Format Error: " + _file
+                                        + " (Position: line %s, column %s)" %
+                                        (mark.line + 1, mark.column + 1)))
+                    return None
+
 if __name__ == "__main__":
-    maas = MaasSupervisor()
+    maas = MAASInstaller()
     maas.initialize()
 
     _p = os.path.abspath(os.getcwd()) + "/example.yaml"

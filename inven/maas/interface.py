@@ -4,9 +4,11 @@ import uuid
 import logging
 import json
 import time
-
+from .. import exceptions
 
 class MaasInterface:
+
+    # For singleton design
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -14,35 +16,79 @@ class MaasInterface:
             cls._instance = super(MaasInterface, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        self.maas_url = None
+    def __init__(self, maas_ip, apikey):
+        self.maas_url = "http://{}/MAAS/api/2.0/".format(maas_ip)
         self.resource_token = None
         self.consumer_token = None
+        self._set_maas_token(self._setting["config"]["apikey"])
 
-        self._logger = logging.getLogger("MaasInterface")
-        self._logger.setLevel(logging.DEBUG)
-        fm = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(fm)
-        self._logger.addHandler(ch)
+        self._logger = logging.getLogger(self.__class__.__name__)
 
-    def initizilize(self, __url, __apikey):
-        self.maas_url = __url
-        self.set_token(__apikey)
-
-    def set_token(self, __apikey):
-        if not __apikey:
-            self._logger.error("API Key for MAAS is missing in agent.yaml")
-            return -1
-        keys = __apikey.split(':')
-        resource_tok_string = "oauth_token_secret=%s&oauth_token=%s" % \
-                              (keys[2], keys[1])
+    def _set_maas_token(self, _apikey):
+        if not _apikey:
+            raise exceptions.NotExistRequiredParameterException("MAAS", "apikey",
+                                                                      "API Key for MAAS is missing in setting.yaml")
+        keys = _apikey.split(':')
+        resource_tok_string = "oauth_token_secret=%s&oauth_token=%s" % (keys[2], keys[1])
         self.resource_token = oauth.OAuthToken.from_string(resource_tok_string)
         self.consumer_token = oauth.OAuthConsumer(keys[0], "")
-        return
 
-    def get(self, __uri):
+    def deploy_machine_by(self, _hostname, _distro='xenial'):
+        target_machine = self.get_machine_by(_hostname)
+        if not target_machine:
+            return None
+        post_body = dict()
+
+        trial = 0
+        while True:
+            if target_machine[u'status'] is 6:
+                # Release the machine
+                self._logger.info("Start to release")
+                uri = "machines/" + target_machine['system_id'] + "/?op=release"
+                self._http_post(uri)
+
+            elif target_machine[u'status'] is 4 and target_machine[u'power_state'] == 'on':
+                # Turn off the machine
+                uri = "machines/" + target_machine['system_id'] + "/?op=power_off"
+                post_body['stop_mode'] = 'soft'
+                self._http_post(uri, json.dump(post_body))
+
+            elif target_machine[u'status'] is 4 and target_machine[u'power_state'] == u'off':
+                # Allocate Machine
+                self._logger.info("Allocate the machine " + _hostname)
+                uri = "machines/" + "/?op=allocate"
+                post_body['system_id'] = target_machine['system_id']
+                self._http_post(uri, json.dumps(post_body))
+                post_body.clear()
+
+                # Deploy Machine
+                self._logger.info("Start to deploy the machine " + _hostname)
+                uri = "machines/" + target_machine['system_id'] + "/?op=deploy"
+                post_body['distro_series'] = _distro
+                self._http_post(uri, json.dumps(post_body))
+                break
+
+            if ++trial > 10:
+                self._logger.error('Cannot Deploy Machine within 50 Seconds')
+                return False
+            time.sleep(5)
+        return True
+
+    def get_machine_by(self, _hostname):
+        _response, content = self._http_get("machines/")
+        if _response["status"] != "200":
+            self._logger.error("HTTP Error: " + _response["reason"] + "Code: "
+                               + _response["status"])
+            return None
+
+        machines = json.loads(content)
+        for machine in machines:
+            if machine["hostname"] == _hostname:
+                return machine
+        self._logger.error("Machine " + _hostname + " can't be found in MAAS")
+        return None
+
+    def _http_get(self, _uri):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token \
             (self.consumer_token,
              token=self.resource_token,
@@ -53,73 +99,11 @@ class MaasInterface:
                                    self.resource_token)
 
         headers = oauth_request.to_header()
-        url = "%s%s" % (self.maas_url, __uri)
+        url = "%s%s" % (self.maas_url, _uri)
         http = httplib2.Http()
         return http.request(url, "GET", headers=headers, body=None)
 
-    def get_machine(self, __hostname):
-        _response, content = self.get_machines()
-        if _response["status"] != "200":
-            self._logger.error("HTTP Error: " + _response["reason"] + "Code: "
-                               + _response["status"])
-            return None
-
-        t = json.loads(content)
-        for m in t:
-            if m["hostname"] == __hostname:
-                return m
-
-        self._logger.error("Machine " + __hostname + " can't be found in MAAS")
-        return None
-
-    def deploy_machine(self, __hostname, __distro='xenial'):
-        mch = self.get_machine(__hostname)
-        if not mch:
-            return None
-        tdict = dict()
-
-        trial = 0
-        while True:
-            if mch[u'status'] is 6:
-                # Release the machine
-                self._logger.info("Start to release")
-                uri = "machines/" + mch['system_id'] + "/?op=release"
-                self.post(uri)
-            elif mch[u'status'] is 4 and mch[u'power_state'] == 'on':
-                # Turn off the machine
-                uri = "machines/" + mch['system_id'] + "/?op=power_off"
-                tdict['stop_mode'] = 'soft'
-                self.post(uri, json.dump(tdict))
-            elif mch[u'status'] is 4 and mch[u'power_state'] == u'off':
-                # Deploy Machine
-                self._logger.info("Allocate the machine "+__hostname)
-                uri = "machines/" + "/?op=allocate"
-                tdict['system_id'] = mch['system_id']
-                self.post(uri, json.dumps(tdict))
-                tdict.clear()
-
-                self._logger.info("Start to deploy the machine "+__hostname)
-                uri = "machines/" + mch['system_id'] + "/?op=deploy"
-                tdict['distro_series'] = __distro
-                self.post(uri, json.dumps(tdict))
-                tdict.clear()
-                break
-            if ++trial > 5:
-                self._logger.error('Cannot Deploy Machine within 25 Seconds')
-                return False
-            time.sleep(5)
-        return True
-
-    def get_machines(self):
-        return self.get("machines/")
-
-    def get_nic(self, __hostname):
-        pass
-
-    def set_ipaddr(self):
-        pass
-
-    def post(self, __uri, __msg=None):
+    def _http_post(self, _uri, _body=None):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token\
             (self.consumer_token,
              token=self.resource_token,
@@ -130,25 +114,20 @@ class MaasInterface:
                                    self.resource_token)
 
         headers = oauth_request.to_header()
-        url = "%s%s" % (self.maas_url, __uri)
+        url = "%s%s" % (self.maas_url, _uri)
         http = httplib2.Http()
 
-        if __msg:
-            body = json.dumps(__msg)
+        if _body:
+            body = json.dumps(_body)
         else:
             body = None
         response = http.request(url, "POST", headers=headers, body=body)
-        print response
+        self._logger.debug(response)
         return response
 
 if __name__ == "__main__":
-    apikey = "FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:" \
-             "rMKfWzRyg36awkBZpKqHUkuyPM33E92Q"
-    maas_url = "http://116.89.190.141/MAAS/api/2.0/"
-    mif = MaasInterface()
-    mif.initizilize(maas_url, apikey)
-
+    mif = MaasInterface("setting.yaml")
 #    response = mif.get_machine('K1-GJ1-DataHub1')
 #    print response
-    response = mif.deploy_machine('K1-GJ1-DataHub1')
+    response = mif.deploy_machine_by('K1-GJ1-DataHub1')
     print response

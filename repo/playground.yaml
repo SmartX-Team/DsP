@@ -8,5 +8,16 @@
         Version: "16.04"
     - Name: "OpenStack"
       Opt:
-        Mode: "Control"
+        Role: "Control"
         Version: "Mitaka"
+
+- Name: "TEST_BOX2"
+  Type: "Virtual"
+  Software:
+    - Name: "Linux"
+      Opt:
+        Distro: "Ubuntu"
+        Version: "16.04"
+    - Name: "Opendaylight"
+      Opt:
+        Version: "Carbon"

@@ -2,22 +2,13 @@ name: maas
 target_software:
   - ubuntu
   - centos
-executable: "start.py"
 config:
   maas_ip: '116.89.190.141'
   apikey: 'FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q'
 
-
-parameter:
-  hostname:
-  account:
-    id:
-    pw:
-  nic:
-    -
-      macaddr:
-      ipaddr:
-      subnet:
-  image:
-    dist: ubuntu
-    version: 16.04
+# Template format for MAAS Installer
+# 
+#
+#
+#
+#
