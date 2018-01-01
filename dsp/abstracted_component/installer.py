@@ -1,8 +1,14 @@
 import abc
 
 
-class InstallerBase(object):
+class Installer(object):
     __metaclass__ = abc.ABCMeta
+
+    def __init__(self):
+        self.name = str
+        self.version = str
+        self.software = list
+        self.setting = dict
 
     @abc.abstractmethod
     def initialize(self, setting_file):
