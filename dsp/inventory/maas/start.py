@@ -2,10 +2,10 @@ import os
 import logging
 import yaml
 import interface
-from ..installer_base import InstallerBase
+from dsp.abstracted_component.installer import Installer
 
 
-class MAASInstaller(InstallerBase):
+class MAASInstaller(Installer):
 
     # For singleton design
     _instance = None

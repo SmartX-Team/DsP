@@ -1,5 +1,6 @@
 import os
 import logging
+import yaml
 
 class InventoryManager:
     _instance = None

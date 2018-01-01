@@ -4,7 +4,7 @@ import uuid
 import logging
 import json
 import time
-from .. import exceptions
+from dsp.inventory import inven_exceptions
 
 
 class MaasInterface:
@@ -31,7 +31,7 @@ class MaasInterface:
 
     def _set_maas_token(self, _apikey):
         if not _apikey:
-            raise exceptions.NotExistRequiredParameterException("MAAS", "apikey",
+            raise inven_exceptions.NotExistRequiredParameterException("MAAS", "apikey",
                                                                       "API Key for MAAS is missing in setting.yaml")
         keys = _apikey.split(':')
         resource_tok_string = "oauth_token_secret=%s&oauth_token=%s" % (keys[2], keys[1])
