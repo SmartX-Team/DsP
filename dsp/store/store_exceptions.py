@@ -5,7 +5,10 @@ class StoreException(Exception):
 
 class ElementNotFoundException(StoreException):
     def __init__(self, filename, findkey, findvalue, args):
-        errmsg = "In the file {}, cannot find element with key {}, value {}".format(filename, findkey, findvalue)
+        if findvalue is not None:
+            errmsg = "In the file {}, cannot find element with key {}, value {}".format(filename, findkey, findvalue)
+        else:
+            errmsg = "In the file {}, cannot find element with key {}".format(filename, findkey)
         super(ElementNotFoundException, self).__init__(errmsg, args)
 
 

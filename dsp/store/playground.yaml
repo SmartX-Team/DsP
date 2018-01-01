@@ -1,23 +1,22 @@
---
-- Name: "TEST_BOX1"
-  Type: "Virtual"
-  Software:
-    - Name: "Linux"
-      Opt:
-        Distro: "Ubuntu"
-        Version: "16.04"
-    - Name: "OpenStack"
-      Opt:
-        Role: "Control"
-        Version: "Mitaka"
+- name: "test1"
+  type: "virtual"
+  software:
+    - name: "linux"
+      opt:
+        distro: "ubuntu"
+        version: "16.04"
+    - name: "openstack"
+      opt:
+        role: "control"
+        version: "mitaka"
 
-- Name: "TEST_BOX2"
-  Type: "Virtual"
-  Software:
-    - Name: "Linux"
-      Opt:
-        Distro: "Ubuntu"
-        Version: "16.04"
-    - Name: "Opendaylight"
-      Opt:
-        Version: "Carbon"
+- name: "test2"
+  type: "virtual"
+  software:
+    - name: "linux"
+      opt:
+        distro: "ubuntu"
+        version: "16.04"
+    - name: "opendaylight"
+      opt:
+        version: "carbon"

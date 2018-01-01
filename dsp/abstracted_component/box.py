@@ -7,10 +7,10 @@ class Box:
         self.setting = dict
         self.software = list
 
-    class NetworkInterface:
-        def __init__(self):
-            self.name = str
-            self.ipaddr = str
-            self.gateway = str
-            self.subnet = str
-            self.dns = str
+class NetworkInterface:
+    def __init__(self):
+        self.name = str
+        self.ipaddr = str
+        self.gateway = str
+        self.subnet = str
+        self.dns = str
