@@ -1,7 +1,7 @@
-from ..installer_base import InstallerBase
+from dsp.abstracted_component.installer import Installer
 
 
-class OpenStackInstaller(InstallerBase):
+class OpenStackInstaller(Installer):
     def initialize(self, setting_file):
         pass
 
