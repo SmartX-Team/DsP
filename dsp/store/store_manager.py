@@ -2,12 +2,13 @@
 import os
 import yaml
 import base64
+import logging
+
 import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import logging
 
 
 class StoreManager(object):
@@ -28,6 +29,16 @@ class StoreManager(object):
         self._security_mode = secure_mode
         self._security_key = None
         self._logger = logging.getLogger(self.__class__.__name__)
+
+    def get_template(self):
+        filename = "playground.yaml"
+        template = self._load_yaml_instance_from_text(self.read_file(filename))
+        return template
+
+    def get_boxes(self):
+        filename = "box.yaml"
+        boxes = self._load_yaml_instance_from_text(self.read_file(filename))
+        return boxes
 
     def init_secure_key(self, salt):
         if self._security_mode:
@@ -73,8 +84,20 @@ class StoreManager(object):
         file.write(contents)
         file.close()
 
+    def _load_yaml_instance_from_text(self, _yaml_text):
+        # Parse the data from YAML template.
+        try:
+            self._logger.info("Parse YAML from the file: \n" + _yaml_text)
+            return yaml.load(_yaml_text)
+        except yaml.YAMLError as exc:
+            if hasattr(exc, 'problem_mark'):
+                mark = exc.problem_mark
+                self._logger.error(("YAML Format Error: In the give YAML text, (Position: line %s, column %s)" %
+                                    (mark.line + 1, mark.column + 1)))
+                return None
+
 
 if __name__ == "__main__":
     sr = StoreManager()
-    ts = os.urandom(16)
-    sr.load_seckey(ts)
+    print(sr.get_boxes())
+    print(sr.get_template())
