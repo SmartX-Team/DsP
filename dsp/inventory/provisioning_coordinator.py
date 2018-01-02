@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import threading
 import logging
+import yaml
+from dsp.inventory.inventory_manager import InventoryManager
+from dsp.inventory import inventory_exceptions
 
 
-class ProvisionCoordinator:
+class ProvisionCoordinator(object):
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -12,31 +15,71 @@ class ProvisionCoordinator:
         return cls._instance
 
     def __init__(self):
-        self._prov_info = None
+        self._logger = None
+        self._setting = None
+        self._playground = None
+        self._installer_instances = list()
 
-        self._logger = logging.getLogger(__name__)
-        self._logger.setLevel(logging.DEBUG)
+        self._inventory = InventoryManager
+        self._threads_for_box_installation = list()
 
-    def _prov_box(self, box_info):
-        self._logger.debug('This Thread will cover the provision of Box %s', box_info.name)
-        for sw in box_info.sw:
-            self._trigger_inst(sw_info=sw)
+    def initialize(self):
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._inventory = InventoryManager()
 
-    def _trigger_inst(self, sw_info):
-        self._logger.debug("Start the installer %s", sw_info.name)
+    def _load_setting(self):
+        self._setting = self._read_yaml_file("setting.yaml")
 
-        if "ansible" in sw_info.name:
-            self._logger.debug("Install Software with Ansible")
-        else:
-            self._logger.debug("Install Software without Ansible")
+    def provisioning(self, playground):
+        # I can't convince the needs of reordering the given template by software.
+        # So, at first, I dirctly use the given template.
+        # self._reorder_by_software(playground)
+        self._playground = playground
 
-    def prov_playground(self, prov_info):
-        threads = []
-        self._prov_info = prov_info
-        for box in self._prov_info:
-            t = threading.Thread(target=self._prov_box, args=(box,))
-            threads.append(t)
+        for box_with_softwares in self._playground:
+            t = threading.Thread(target=self._install_softwares_to_box(), args=box_with_softwares)
+            self._threads_for_box_installation.append(t)
             t.start()
 
-        for t in threads:
-            t.join()
+        for t in self._threads_for_box_installation:
+                t.join()
+
+    def _install_softwares_to_box(self, box_with_softwares):
+        software_list = box_with_softwares.software
+
+        for software in software_list:
+            installer_name = software.installer
+            installer_instance = self._get_installer_by(installer_name)
+            self._trigger_installation(installer_instance, box_with_softwares, software)
+
+    def _get_installer_by(self, installer_name):
+        for installer_instance in self._installer_instances:
+            if installer_instance.name == installer_name:
+                return installer_instance
+
+        try:
+            installer_instance = self._inventory.get_installer(installer_name)
+            self._installer_instances.append(installer_instance)
+        except inventory_exceptions.InventoryException as exc:
+            self._logger.debug(exc.message)
+            raise inventory_exceptions.ProvisioningCoordinatorException(exc.message)
+        return installer_instance
+
+    def _trigger_installation(self, installer_instance, box_with_softwares, software):
+        installer_instance.install(box_with_softwares, software)
+
+    def _read_yaml_file(self, _file):
+        # Parse the data from YAML template.
+        with open(_file, 'r') as stream:
+            try:
+                file_str = stream.read()
+                self._logger.info("Parse YAML from the file: \n" + file_str)
+                return yaml.load(file_str)
+            except yaml.YAMLError as exc:
+                if hasattr(exc, 'problem_mark'):
+                    mark = exc.problem_mark
+                    self._logger.error(("YAML Format Error: " + _file
+                                        + " (Position: line %s, column %s)" %
+                                        (mark.line + 1, mark.column + 1)))
+                    raise inventory_exceptions.ProvisioningCoordinatorException(
+                        "Error occurs while loading setting.yaml")
