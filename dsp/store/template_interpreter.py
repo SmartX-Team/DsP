@@ -60,8 +60,8 @@ class TemplateInterpreter:
                 box_instance.type = template_component["type"]
                 box_instance.software = self._create_software_instance_list_from(template_component)
                 playground.append(box_instance)
-        except store_exceptions.ElementNotFoundException as exc:
-            raise store_exceptions.StoreException(exc.message)
+        except store_exceptions.ParameterNotFoundException as exc:
+            raise store_exceptions.StoreManagerException(exc.message)
         return playground
 
     def _create_box_instance_list_from(self, box_dicts):
@@ -72,7 +72,7 @@ class TemplateInterpreter:
             try:
                 box_instance.name = b["name"]
             except KeyError as exc:
-                raise store_exceptions.ElementNotFoundException("box.yaml", exc.args[0], None, exc.message)
+                raise store_exceptions.ParameterNotFoundException("box.yaml", exc.args[0], None, exc.message)
 
             box_instance.account = b.get("account", None)
             box_instance.setting = b.get("setting", None)
@@ -98,10 +98,10 @@ class TemplateInterpreter:
                 nic_instance.ipaddr = n["ipaddr"]
                 nic_instance.subnet = n["subnet"]
             except KeyError as exc:
-                raise store_exceptions.ElementNotFoundException("box.yaml",
+                raise store_exceptions.ParameterNotFoundException("box.yaml",
                                                                 "{}.{}".format(box_dict["name"], exc.args[0]),
-                                                                None,
-                                                                exc.message)
+                                                                  None,
+                                                                  exc.message)
 
             nic_instance.gateway = n.get("gateway", None)
             nic_instance.dns = n.get("dns", None)
@@ -113,9 +113,9 @@ class TemplateInterpreter:
         software_dicts = template_component.get("software")
 
         if software_dicts is None:
-            raise store_exceptions.ElementNotFoundException("template.yaml",
+            raise store_exceptions.ParameterNotFoundException("template.yaml",
                                                       "{}.{}".format(template_component.get("name", None), "software"),
-                                                      None, None)
+                                                              None, None)
 
         software_instances = list()
         for software_dict in software_dicts:
@@ -123,10 +123,10 @@ class TemplateInterpreter:
             try:
                 software_instance.name = software_dict["name"]
             except KeyError as exc:
-                store_exceptions.ElementNotFoundException("template.yaml",
+                store_exceptions.ParameterNotFoundException("template.yaml",
                                                           "{}.{}.{}".format(template_component.get("name", None),
                                                                             "software", exc.args[0]),
-                                                          None, exc.message)
+                                                            None, exc.message)
             software_instance.installer = software_dict.get("installer", None)
             software_instance.option = software_dict.get("opt", None)
             software_instance.version = software_dict.get("version", None)
@@ -137,7 +137,7 @@ class TemplateInterpreter:
         for box in box_instances:
             if box.name == boxname:
                 return box
-        raise store_exceptions.ElementNotFoundException("box.yaml", "name", boxname, None)
+        raise store_exceptions.ParameterNotFoundException("box.yaml", "name", boxname, None)
 
 
 if __name__ == "__main__":

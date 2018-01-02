@@ -15,25 +15,22 @@ class Installer(object):
         pass
 
     @abc.abstractmethod
-    def install(self, template):
+    def install(self, playground):
         pass
 
     @abc.abstractmethod
-    def uninstall(self, template):
+    def uninstall(self, playground):
         pass
 
     @abc.abstractmethod
-    def update(self, template):
+    def update(self, playground):
         pass
 
     @abc.abstractmethod
-    def is_available(self):
+    def check_status(self):
         pass
 
-    @abc.abstractmethod
-    def validate_template(self, template):
-        pass
-
-    @abc.abstractmethod
-    def get_setting(self):
-        pass
+    class InstallerStatus:
+        Available = 1
+        Fail = 2
+        Disabled = 3

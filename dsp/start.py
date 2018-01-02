@@ -4,15 +4,13 @@ import logging
 import yaml
 
 from dsp.store.template_interpreter import TemplateInterpreter
-from prov.prov import ProvisionCoordinator
+from dsp.inventory.provisioning_coordinator import ProvisionCoordinator
 
 
 class DsP:
     def __init__(self):
         self._logger = None
-
         self._playground = None
-
         self._interpreter = None
         self._coordinator = None
 
@@ -24,7 +22,7 @@ class DsP:
         self._coordinator = ProvisionCoordinator()
 
     def _initialize_logger(self):
-        self.logger = logging.getLogger("ovn")
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(logging.DEBUG)
         fm = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s() - %(message)s')
         sh = logging.StreamHandler()

@@ -1,4 +1,4 @@
-name: AnsibleInstaller
+name: ScriptInstaller
 target_software:
   - openstack
 executable: "start.py"

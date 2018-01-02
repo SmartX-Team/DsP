@@ -16,6 +16,7 @@ class MAASInstaller(Installer):
         return cls._instance
 
     def __init__(self):
+        super(MAASInstaller, self).__init__()
         self.interface = None
         self.setting = None
 
@@ -43,22 +44,16 @@ class MAASInstaller(Installer):
         apikey = self.setting['config']['apikey']
         self.interface = interface.MaasInterface(maas_ip, apikey)
 
-    def install(self, template):
+    def install(self, playground):
         pass
 
-    def uninstall(self, template):
+    def uninstall(self, playground):
         pass
 
-    def update(self, template):
+    def update(self, playground):
         pass
 
-    def is_available(self):
-        pass
-
-    def validate_template(self, template):
-        pass
-
-    def get_setting(self):
+    def check_status(self):
         pass
 
     def start(self, __params_str):

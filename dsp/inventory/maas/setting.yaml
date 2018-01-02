@@ -1,7 +1,8 @@
-name: maas
+name: MAASInstaller
 target_software:
   - ubuntu
   - centos
+executable: start.py
 config:
   maas_ip: '116.89.190.141'
   apikey: 'FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q'

@@ -1,5 +1,5 @@
 priority:
-  - ubuntu
+  - ubuntu, centos
   - openstack
 
 independent:
