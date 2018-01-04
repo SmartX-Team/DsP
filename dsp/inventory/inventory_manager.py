@@ -36,11 +36,9 @@ class InventoryManager(object):
                 installer_instance = self._create_installer_from_subdir(subdir_path)
                 self._registered_installers.append(installer_instance)
             except InventoryManagerNoInstallerException as exc:
-                self._logger.error(exc.message)
-                # raise InventoryManagerException(exc.message)
+                self._logger.warn(exc.message)
             except InventoryManagerNoInstallerSettingException as exc:
-                self._logger.error(exc.message)
-                # raise InventoryManagerException(exc.message)
+                self._logger.warn(exc.message)
 
     def _create_installer_from_subdir(self, subdir_path):
         if "setting.yaml" in os.listdir(subdir_path):
@@ -70,8 +68,8 @@ class InventoryManager(object):
         try:
             matched_installer = self._get_installer_from_list(installer_name)
         except InventoryManagerNoInstallerException as exc:
-            print ("Error")
-            return None
+            # ToDo If no installer in the list, need to find sub directories rather than raise an exception.
+            raise InventoryManagerException(exc.message)
 
         try:
             self._check_installer(matched_installer)

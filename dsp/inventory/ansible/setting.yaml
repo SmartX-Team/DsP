@@ -1,5 +1,12 @@
 name: AnsibleInstaller
 target_software:
-  - openstack
+  - opendaylight
+  - onos
+  - openvswitch
 executable: "start.py"
 config:
+  ansible_ip_addr: "192.168.124.31"
+  playbooks:
+    onos: onos/onos_from_tar.yaml
+    opendaylight: opendaylight
+    openvswich: openvswitch/install_openvswitch.yaml

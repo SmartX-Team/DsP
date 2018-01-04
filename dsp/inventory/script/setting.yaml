@@ -1,5 +1,0 @@
-name: ScriptInstaller
-target_software:
-  - openstack
-executable: "start.py"
-config:
