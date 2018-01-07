@@ -1,20 +1,23 @@
 -
-  name: test1
+  name: "dsp-control1-1"
+  type: "physical"
+  host_box:
   account:
-    - netcs
+    - "netcs"
   network:
-    - name: management
-      ipaddr: 210.114.90.3
-      subnet: 255.255.255.0
-      gateway: 210.114.90.1
-      dns: 8.8.8.8
+    - name: "management"
+      ipaddr: "192.168.124.31"
+      subnet: "255.255.255.0"
+
 -
-  name: test2
+  name: "dsp-control2-1"
+  type: "container"
+  host_box: "dsp-control1-1"
   account:
-    - netcs
+    - "netcs"
   network:
-    - name: management
-      ipaddr: 210.114.90.35
-      subnet: 255.255.255.0
-      gateway: 210.114.90.1
-      dns: 8.8.8.8
+    - name: "management"
+      ipaddr: "192.168.124.41"
+      subnet: "255.255.255.0"
+      gateway: "192.168.124.1"
+      dns: "8.8.8.8"

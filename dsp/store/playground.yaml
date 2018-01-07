@@ -1,22 +1,27 @@
-- name: "test1"
-  type: "virtual"
+- name: "dsp-control1-1"
   software:
+
     - name: "linux"
+      installer: "maas"
       opt:
         distro: "ubuntu"
         version: "16.04"
+
     - name: "openstack"
+      installer: "ansible"
       opt:
         role: "control"
         version: "mitaka"
 
-- name: "test2"
-  type: "virtual"
+- name: "dsp-control2-1"
   software:
+
     - name: "linux"
+      installer: "lxd"
       opt:
-        distro: "ubuntu"
-        version: "16.04"
+        image: "ubuntu:16.04"
+
     - name: "opendaylight"
+      installer: "ansible"
       opt:
         version: "carbon"

@@ -53,36 +53,52 @@ class TemplateInterpreter:
 
     def _create_playground(self):
         playground = list()
-        box_instances = self._create_box_instance_list_from(self._boxes)
+        box_instances = self._create_box_instances_from(self._boxes)
+        self._adjust_type_specific_parameters(box_instances)
+
         try:
             for template_component in self._template:
-                box_instance = self._find_box_instance_by(template_component["name"], box_instances)
-                box_instance.type = template_component["type"]
-                box_instance.software = self._create_software_instance_list_from(template_component)
+                box_instance = self._find_box_instance_by(template_component.get("name", None), box_instances)
+                box_instance.software = self._create_software_instances_from(template_component)
                 playground.append(box_instance)
+        except store_exceptions.NotDefinedBoxException as exc:
+            new_msg = "(In Template file, we found)" + exc.message
+            raise store_exceptions.StoreManagerException(new_msg)
         except store_exceptions.ParameterNotFoundException as exc:
             raise store_exceptions.StoreManagerException(exc.message)
+
         return playground
 
-    def _create_box_instance_list_from(self, box_dicts):
+    def _create_box_instances_from(self, box_dicts):
         box_instances = list()
 
         for b in box_dicts:
             box_instance = Box()
             try:
                 box_instance.name = b["name"]
+                box_instance.type = b["type"]
             except KeyError as exc:
-                raise store_exceptions.ParameterNotFoundException("box.yaml", exc.args[0], None, exc.message)
+                raise store_exceptions.ParameterNotFoundException("box.yaml", exc.args[0], None)
 
             box_instance.account = b.get("account", None)
-            box_instance.setting = b.get("setting", None)
+            box_instance.setting = b.get("setting", dict())
+            box_instance.setting["host_box"] = b.get("host_box", None)
             box_instance.network = self._create_nic_instance_list_from(b)
-            box_instance.type = None
             box_instance.software = None
-
             box_instances.append(box_instance)
-
         return box_instances
+
+    def _adjust_type_specific_parameters(self, box_instances):
+        for box_instance in box_instances:
+            box_type = box_instance.type
+            if box_type == "physical":
+                pass
+            elif box_type == "virtual":
+                host_box_instance = self._find_box_instance_by(box_instance.setting.get("host_box"), box_instances)
+                box_instance.setting["host_box"] = host_box_instance
+            elif box_type == "container":
+                host_box_instance = self._find_box_instance_by(box_instance.setting.get("host_box"), box_instances)
+                box_instance.setting["host_box"] = host_box_instance
 
     def _create_nic_instance_list_from(self, box_dict):
         nic_dicts = box_dict.get("network")
@@ -100,22 +116,19 @@ class TemplateInterpreter:
             except KeyError as exc:
                 raise store_exceptions.ParameterNotFoundException("box.yaml",
                                                                 "{}.{}".format(box_dict["name"], exc.args[0]),
-                                                                  None,
-                                                                  exc.message)
-
+                                                                  None)
             nic_instance.gateway = n.get("gateway", None)
             nic_instance.dns = n.get("dns", None)
             nic_instances.append(nic_instance)
-
         return nic_instances
 
-    def _create_software_instance_list_from(self, template_component):
+    def _create_software_instances_from(self, template_component):
         software_dicts = template_component.get("software")
 
         if software_dicts is None:
             raise store_exceptions.ParameterNotFoundException("template.yaml",
                                                       "{}.{}".format(template_component.get("name", None), "software"),
-                                                              None, None)
+                                                              None)
 
         software_instances = list()
         for software_dict in software_dicts:
@@ -124,20 +137,19 @@ class TemplateInterpreter:
                 software_instance.name = software_dict["name"]
             except KeyError as exc:
                 store_exceptions.ParameterNotFoundException("template.yaml",
-                                                          "{}.{}.{}".format(template_component.get("name", None),
-                                                                            "software", exc.args[0]),
-                                                            None, exc.message)
+                                                            "{}.{}".format(template_component.get("name", None), "software"),
+                                                            None)
             software_instance.installer = software_dict.get("installer", None)
             software_instance.option = software_dict.get("opt", None)
             software_instance.version = software_dict.get("version", None)
             software_instances.append(software_instance)
         return software_instances
 
-    def _find_box_instance_by(self, boxname, box_instances):
+    def _find_box_instance_by(self, target_box_name, box_instances):
         for box in box_instances:
-            if box.name == boxname:
+            if box.name == target_box_name:
                 return box
-        raise store_exceptions.ParameterNotFoundException("box.yaml", "name", boxname, None)
+        raise store_exceptions.NotDefinedBoxException(target_box_name)
 
 
 if __name__ == "__main__":
