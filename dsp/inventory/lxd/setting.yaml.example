@@ -1,6 +1,6 @@
 name: ContainerBoxInstaller
 target_software:
-  - cbox
+  - lxd
 executable: "start.py"
 config:
   default_trust_password: "password"

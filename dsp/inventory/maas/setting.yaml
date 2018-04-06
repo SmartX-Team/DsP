@@ -4,12 +4,5 @@ target_software:
   - centos
 executable: start.py
 config:
-  maas_ip: '116.89.190.141'
-  apikey: 'FWU2ydTZ8Hwz45wq8C:QXsxQPJSTkjraPzJYS:rMKfWzRyg36awkBZpKqHUkuyPM33E92Q'
-
-# Template format for MAAS Installer
-# 
-#
-#
-#
-#
+  maas_ip: '210.117.251.32'
+  apikey: 'J3F6V7taSRbHYPq5Tw:4Kbvav6RHuJxbCQwhP:CvWR4JPmpdvDvVaGeK78n5MZpZ76qdW2'

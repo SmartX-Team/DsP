@@ -1,0 +1,6 @@
+- name: <Box Name>
+  software:
+    - name: <Software Name>
+      installer: <Software Installer Name>
+      opt:
+        <Detailed Options for Installer. Refer to README file in each Installer>

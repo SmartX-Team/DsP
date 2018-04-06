@@ -5,4 +5,4 @@ target_software:
   - openvswitch
 executable: "start.py"
 config:
-  ansible_ip_addr: "192.168.124.31"
+  ansible_ip_addr: <Ansible_Box_IP_Address>
