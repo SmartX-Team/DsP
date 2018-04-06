@@ -1,8 +1,0 @@
-name: AnsibleInstaller
-target_software:
-  - opendaylight
-  - onos
-  - openvswitch
-executable: "start.py"
-config:
-  ansible_ip_addr: "192.168.124.31"
