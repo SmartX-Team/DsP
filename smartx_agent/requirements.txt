@@ -1,5 +1,0 @@
-simplejson
-netifaces
-distro
-psutil
-apt
