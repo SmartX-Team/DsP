@@ -1,0 +1,8 @@
+oauth
+PyYaml
+flask
+httplib2
+cryptography
+python-libmaas
+pylxd
+ansible

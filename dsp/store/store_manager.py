@@ -44,7 +44,7 @@ class StoreManager(object):
         if self._security_mode:
             self._load_seckey(salt)
         else:
-            self._logger.warn("This Repo Manager is working on NON-SECURE Mode")
+            self._logger.warning("This Repo Manager is working on NON-SECURE Mode")
 
     def _load_seckey(self, salt):
         kdf = PBKDF2HMAC(
@@ -58,7 +58,7 @@ class StoreManager(object):
         self._security_key = base64.urlsafe_b64encode(kdf.derive(p))
 
     def read_file(self, filename):
-        filepath = os.path.join(os.getcwd(), filename)
+        filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
 
         file = open(filepath, 'r')
         contents = file.read(-1)

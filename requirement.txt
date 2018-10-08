@@ -1,5 +1,0 @@
-oauth
-PyYaml
-flask
-httplib2
-cryptography

@@ -13,7 +13,6 @@ class DsP:
         self._playground = None
         self._interpreter = None
         self._coordinator = None
-
         self.initialize()
 
     def initialize(self):
@@ -22,12 +21,12 @@ class DsP:
         self._coordinator = ProvisionCoordinator()
 
     def _initialize_logger(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(logging.DEBUG)
+        self._logger = logging.getLogger()
+        self._logger.setLevel(logging.DEBUG)
         fm = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s() - %(message)s')
         sh = logging.StreamHandler()
         sh.setFormatter(fm)
-        self.logger.addHandler(sh)
+        self._logger.addHandler(sh)
 
     def start(self):
         self._load_setting()
@@ -35,7 +34,7 @@ class DsP:
         self._coordinator.provisioning(self._playground)
 
     def _load_setting(self):
-        file_path = os.path.join(os.getcwd(), "setting.yaml")
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "setting.yaml")
         self._dsp_setting = self._read_yaml_file(file_path)
 
     def _read_yaml_file(self, _file):
@@ -43,8 +42,11 @@ class DsP:
         with open(_file, 'r') as stream:
             try:
                 file_str = stream.read()
-                self._logger.info("Parse YAML from the file: \n" + file_str)
-                return yaml.load(file_str)
+                self._logger.debug("Parse YAML from the file: \n" + file_str)
+                if file_str:
+                    return yaml.load(file_str)
+                else:
+                    return None
             except yaml.YAMLError as exc:
                 if hasattr(exc, 'problem_mark'):
                     mark = exc.problem_mark

@@ -2,6 +2,7 @@
 import threading
 import logging
 import yaml
+import asyncio
 from dsp.inventory.inventory_manager import InventoryManager
 from dsp.inventory import inventory_exceptions
 
@@ -22,10 +23,13 @@ class ProvisionCoordinator(object):
 
         self._inventory = InventoryManager
         self._threads_for_box_installation = list()
+        self.initialize()
 
     def initialize(self):
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger.setLevel(logging.DEBUG)
         self._inventory = InventoryManager()
+        self._logger.info("{} is initialized".format(self.__class__.__name__))
 
     def _load_setting(self):
         self._setting = self._read_yaml_file("setting.yaml")
@@ -37,36 +41,36 @@ class ProvisionCoordinator(object):
         self._playground = playground
 
         for box_with_softwares in self._playground:
-            t = threading.Thread(target=self._install_softwares_to_box(), args=box_with_softwares)
+            t = threading.Thread(target=self._install_softwares_to_box, args=(box_with_softwares,))
             self._threads_for_box_installation.append(t)
             t.start()
 
         for t in self._threads_for_box_installation:
-                t.join()
+            t.join()
 
     def _install_softwares_to_box(self, box_with_softwares):
+        asyncio.set_event_loop(asyncio.new_event_loop())
         software_list = box_with_softwares.software
 
         for software in software_list:
             installer_name = software.installer
             installer_instance = self._get_installer_by(installer_name)
-            self._trigger_installation(installer_instance, box_with_softwares, software)
+            self._trigger_installation(installer_instance, box_with_softwares)
 
     def _get_installer_by(self, installer_name):
         for installer_instance in self._installer_instances:
             if installer_instance.name == installer_name:
                 return installer_instance
-
         try:
             installer_instance = self._inventory.get_installer(installer_name)
             self._installer_instances.append(installer_instance)
         except inventory_exceptions.InventoryException as exc:
-            self._logger.debug(exc.message)
-            raise inventory_exceptions.ProvisioningCoordinatorException(exc.message)
+            self._logger.debug(exc)
+            raise inventory_exceptions.ProvisioningCoordinatorException(exc)
         return installer_instance
 
-    def _trigger_installation(self, installer_instance, box_with_softwares, software):
-        installer_instance.install(box_with_softwares, software)
+    def _trigger_installation(self, installer_instance, box_with_softwares):
+        installer_instance.install(box_with_softwares)
 
     def _read_yaml_file(self, _file):
         # Parse the data from YAML template.

@@ -8,6 +8,16 @@ class TemplateInterpreterException(Exception):
         super(TemplateInterpreterException, self).__init__(msg)
 
 
+class TemplateFormatException(TemplateInterpreterException):
+    def __init__(self, msg):
+        super(TemplateInterpreterException, self).__init__(msg)
+
+
+class BoxFormatException(TemplateInterpreterException):
+    def __init__(self, msg):
+        super(TemplateInterpreterException, self).__init__(msg)
+
+
 class ParameterNotFoundException(TemplateInterpreterException):
     def __init__(self, filename, findkey, findvalue):
         if findvalue is not None:

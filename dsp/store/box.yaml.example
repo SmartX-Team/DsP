@@ -3,7 +3,8 @@
   type: <Box Type: physical|virtual|container>
   host_box: <Host Box Name. Required for virtual or container type>
   account:
-    - <Linux Account ID>
+    id: <Linux Account ID>
+    password: <Linux Account Password>
   network:
     - name: <Logical Network Name: Management|Control|Data>
       ipaddr: <Network IP Address>
