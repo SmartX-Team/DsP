@@ -1,1 +1,2 @@
-Start date for Refactoring: 2017-11-08
+# Distributed Secure Provisioning Tool
+<img src="https://github.com/SmartX-Team/DsP/blob/master/DsP_Architecture_v01.png">
