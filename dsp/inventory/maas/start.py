@@ -55,7 +55,7 @@ class MAASInstaller(Installer):
         # Todo Creating MAAS Instance with ID/PW
         self._interface = maas_client.connect(maas_url, apikey=apikey)
 
-    def install(self, box_desc):
+    def install(self, box_desc, target_software):
         """Deploy this machine.
 
         :param user_data: User-data to provide to the machine when booting. If
@@ -69,10 +69,7 @@ class MAASInstaller(Installer):
         :param wait: If specified, wait until the deploy is complete.
         :param wait_interval: How often to poll, defaults to 5 seconds
         """
-        maas_desc = None
-        for sw in box_desc.software:
-            if sw.installer == self.name:
-                maas_desc = sw
+        maas_desc = target_software
         machine = self._get_machine(box_desc.name)
         self._logger.debug(yaml.dump(box_desc))
 
@@ -89,7 +86,7 @@ class MAASInstaller(Installer):
                                                         "Machine is not ready for install. Status: {}".
                                                         format(machine.status_name))
 
-    def uninstall(self, box_desc):
+    def uninstall(self, box_desc, target_software):
         """
         Release the machine.
 
@@ -119,7 +116,7 @@ class MAASInstaller(Installer):
                                                         "Machine is not ready for uninstall. Status: {}".
                                                         format(machine.status_name))
 
-    def update(self, box_desc):
+    def update(self, box_desc, target_software):
         pass
 
     def check_status(self):

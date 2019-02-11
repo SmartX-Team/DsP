@@ -1,3 +1,13 @@
+class NetworkInterface:
+    def __init__(self):
+        self.nic = str
+        self.type = str
+        self.ipaddr = str
+        self.gateway = str
+        self.subnet = str
+        self.dns = list
+
+
 class Box:
     def __init__(self):
         self.name = str
@@ -7,10 +17,7 @@ class Box:
         self.setting = dict
         self.software = list
 
-class NetworkInterface:
+
+class Cluster():
     def __init__(self):
-        self.name = str
-        self.ipaddr = str
-        self.gateway = str
-        self.subnet = str
-        self.dns = str
+        self.boxes = list

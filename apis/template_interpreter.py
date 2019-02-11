@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request
-from .. import template_interpreter
+from dsp.store import template_interpreter
 
 """
 Template Interpreter should have interfaces to Secured Repository Manager

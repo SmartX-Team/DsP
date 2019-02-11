@@ -8,22 +8,22 @@ class Installer(object):
         self.name = str
         self.version = str
         self.software = list
-        self.setting = dict
+        self._setting = dict
 
     @abc.abstractmethod
     def initialize(self, setting_file):
         pass
 
     @abc.abstractmethod
-    def install(self, playground):
+    def install(self, box_desc, target_software):
         pass
 
     @abc.abstractmethod
-    def uninstall(self, playground):
+    def uninstall(self, box_desc, target_software):
         pass
 
     @abc.abstractmethod
-    def update(self, playground):
+    def update(self, box_desc, target_software):
         pass
 
     @abc.abstractmethod

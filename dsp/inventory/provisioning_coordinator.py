@@ -55,7 +55,7 @@ class ProvisionCoordinator(object):
         for software in software_list:
             installer_name = software.installer
             installer_instance = self._get_installer_by(installer_name)
-            self._trigger_installation(installer_instance, box_with_softwares)
+            self._trigger_installation(installer_instance, box_with_softwares, software)
 
     def _get_installer_by(self, installer_name):
         for installer_instance in self._installer_instances:
@@ -69,8 +69,8 @@ class ProvisionCoordinator(object):
             raise inventory_exceptions.ProvisioningCoordinatorException(exc)
         return installer_instance
 
-    def _trigger_installation(self, installer_instance, box_with_softwares):
-        installer_instance.install(box_with_softwares)
+    def _trigger_installation(self, installer_instance, box_with_softwares, target_software):
+        installer_instance.install(box_with_softwares, target_software)
 
     def _read_yaml_file(self, _file):
         # Parse the data from YAML template.

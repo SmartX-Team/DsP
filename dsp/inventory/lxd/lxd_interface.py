@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     lxdif = LXDInterface()
     if lxdif.check_host(ipaddr, pw) is False:
-        print "Host is not accessible: host IP {}, LXD PW {}".format(ipaddr, pw)
+        print("Host is not accessible: host IP {}, LXD PW {}".format(ipaddr, pw))
 
     box_name = "testbox1"
     image_name = "16.04"
