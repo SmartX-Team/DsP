@@ -1,7 +1,7 @@
 import abc
 
 
-class Installer(object):
+class InstallationToolInterface(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
@@ -27,10 +27,10 @@ class Installer(object):
         pass
 
     @abc.abstractmethod
-    def check_status(self):
+    def check_tool_status(self):
         pass
 
-    class InstallerStatus:
+    class InstallationToolStatus:
         Available = 1
         Fail = 2
         Disabled = 3

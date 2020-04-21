@@ -1,9 +1,9 @@
-from dsp.abstracted_component.installer import Installer
+from dsp.abstracted_component.inst_tool_iface import InstallationToolInterface
 
 
-class LXDInstaller(Installer):
+class LXDInstallationToolInterface(InstallationToolInterface):
     def __init__(self):
-        super(LXDInstaller, self).__init__()
+        super(LXDInstallationToolInterface, self).__init__()
         self.name = "lxd"
         self.version = None
         self.software = list
@@ -21,7 +21,7 @@ class LXDInstaller(Installer):
     def update(self, box_desc):
         pass
 
-    def check_status(self):
+    def check_tool_status(self):
         pass
 
 

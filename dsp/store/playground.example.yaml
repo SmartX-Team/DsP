@@ -1,0 +1,9 @@
+- tenant: <Tenant Name>
+  boxes:
+  - name: <Box Name>
+    where: <A Place of the Box>
+    software:
+    - name: <Software Name>
+      installer: <Software Installer Name>
+      opt:
+          <Detailed Options for Installer. Refer to README file in each Installer>

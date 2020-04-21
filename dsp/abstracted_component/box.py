@@ -1,7 +1,7 @@
 class NetworkInterface:
     def __init__(self):
         self.nic = str
-        self.type = str
+        self.plane = str
         self.ipaddr = str
         self.gateway = str
         self.subnet = str
@@ -11,6 +11,8 @@ class NetworkInterface:
 class Box:
     def __init__(self):
         self.name = str
+        self.where = str
+        self.tenant = str
         self.type = str
         self.account = list
         self.network = str
@@ -18,6 +20,6 @@ class Box:
         self.software = list
 
 
-class Cluster():
+class Cluster:
     def __init__(self):
         self.boxes = list

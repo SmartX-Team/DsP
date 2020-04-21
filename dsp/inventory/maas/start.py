@@ -1,28 +1,31 @@
 import os
 import logging
 import yaml
-from dsp.abstracted_component.installer import Installer
+from dsp.abstracted_component.inst_tool_iface import InstallationToolInterface
 from dsp.inventory import inventory_exceptions
 from maas import client as maas_client
 from maas.client.enum import NodeStatus
 
 
-class MAASInstaller(Installer):
+class MAASInterface(InstallationToolInterface):
     # For singleton design
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(MAASInstaller, cls).__new__(cls)
+            cls._instance = super(MAASInterface, cls).__new__(cls)
         return cls._instance
 
     def __init__(self):
-        super(MAASInstaller, self).__init__()
+        super(MAASInterface, self).__init__()
+        # Variables for Interface Description
         self.name = str
         self.version = str
         self.software = list
         self._setting = dict
-        self._interface = None
+
+        self._maas_url = str
+        self._maas_apikey = str
 
         self._logger = logging.getLogger(self.__class__.__name__)
         self.initialize()
@@ -32,28 +35,19 @@ class MAASInstaller(Installer):
         _file_path = os.path.join(os.path.dirname(__file__), _setting_file)
         with open(_file_path, 'r') as stream:
             fr = stream.read(-1)
-            fy = yaml.load(fr)
+            fy = yaml.load(fr, Loader=yaml.FullLoader)
+
+        self._load_installer_setting(fy)
+        self._load_maas_setting(self._setting["maas"])
+
+    def _load_installer_setting(self, fy):
         self.name = fy["name"]
         self.software = fy["target_software"]
         self._setting = fy["config"]
 
-        self._create_maas_interface()
-
-    def _load_maas_setting(self, _setting_file):
-        p = os.path.abspath(os.getcwd()) + "/" + _setting_file
-        if os.path.isfile(p):
-            self._setting = self._read_yaml_file(p)
-        else:
-            raise inventory_exceptions.InstallerException("{}: Setting file is not exists".format(self.name))
-
-    def _create_maas_interface(self):
-        maas_ip = self._setting['maas_ip']
-        maas_port = self._setting['maas_port']
-        maas_url = "http://{}:{}/MAAS/".format(maas_ip, maas_port)
-
-        apikey = self._setting['apikey']
-        # Todo Creating MAAS Instance with ID/PW
-        self._interface = maas_client.connect(maas_url, apikey=apikey)
+    def _load_maas_setting(self, maas_cfg):
+        self._maas_url = "http://{}:{}/MAAS/".format(maas_cfg['maas_ip'], maas_cfg['maas_port'])
+        self._maas_apikey = maas_cfg['apikey']
 
     def install(self, box_desc, target_software):
         """Deploy this machine.
@@ -73,18 +67,17 @@ class MAASInstaller(Installer):
         machine = self._get_machine(box_desc.name)
         self._logger.debug(yaml.dump(box_desc))
 
-        if machine.status in [NodeStatus.DEPLOYED, NodeStatus.DEPLOYING]:
-            machine.release(wait=True)
+        # if machine.status in [NodeStatus.DEPLOYED, NodeStatus.DEPLOYING]:
+        #     machine.release(wait=True)
 
         if machine.status == NodeStatus.READY:
             linux_ver = None
             if maas_desc:
-                linux_ver = maas_desc.option.get("version", None)
-            machine.deploy(wait=True, distro_series=linux_ver)
+                linux_ver = maas_desc.option.get("version", "xenial")
+            self._logger.info("Install Linux {} to {}".format(linux_ver, box_desc.name))
+            # machine.deploy(wait=True, distro_series=linux_ver)
         else:
-            inventory_exceptions.InstallerFailException(self.name,
-                                                        "Machine is not ready for install. Status: {}".
-                                                        format(machine.status_name))
+            self._logger.info("Machine is not ready for install. Status: {}".format(machine.status_name))
 
     def uninstall(self, box_desc, target_software):
         """
@@ -103,10 +96,12 @@ class MAASInstaller(Installer):
         :param wait_interval: How often to poll, defaults to 5 seconds.
         :type wait_interval: `int`
         """
-        box_name = box_desc.name
-        sw_opt = box_desc.opt
-        machine = self._get_machine(box_desc['name'])
+        if not target_software["name"] == "linux":
+            raise inventory_exceptions.InstallerFailException(self.name,
+                                                              "Uninstalling {} is not supported".format(
+                                                                  target_software["name"]))
 
+        machine = self._get_machine(box_desc['name'])
         if machine.status == NodeStatus.DEPLOYED:
             machine.release(wait=True)
         elif machine.status == NodeStatus.READY:
@@ -119,18 +114,20 @@ class MAASInstaller(Installer):
     def update(self, box_desc, target_software):
         pass
 
-    def check_status(self):
-        if self._interface:
-            return self.InstallerStatus.Available
-        else:
-            return self.InstallerStatus.Fail
+    def check_tool_status(self):
+        pass
 
     def _get_machine(self, hostname):
-        machine_list = self._interface.machines.list()
+        self._logger.debug(self._maas_url)
+        self._logger.debug(self._maas_apikey)
+        _maas_interface = maas_client.connect(self._maas_url, apikey=self._maas_apikey)
+
+        machine_list = _maas_interface.machines.list()
         for m in machine_list:
             if m.hostname == hostname:
                 self._logger.debug("{} {}".format(m.hostname, m.architecture))
                 return m
+
         # Available Varilabes in Machine
         # block_devices, boot_interface, cpus, disable_ipv4, fqdn, hostname, hwe_kernel, interfaces, ip_addresses,
         # loaded, memory, node_type, osystem, owner, power_type, power_state, status, status_name, system_id, tags,
@@ -155,17 +152,19 @@ class MAASInstaller(Installer):
 if __name__ == "__main__":
     logging.basicConfig(format="[%(asctime)s / %(levelname)s] %(filename)s,%(funcName)s(#%(lineno)d): %(message)s",
                         level=logging.DEBUG)
-    maas = MAASInstaller()
+    maas = MAASInterface()
 
     p = os.path.abspath(os.getcwd()) + "/" + "setting.yaml"
     with open(p, 'r') as stream:
         with open(p, mode='r') as f:
             setting_str = f.read(-1)
-        setting = yaml.load(setting_str)
+        setting = yaml.load(setting_str, Loader=yaml.FullLoader)
     maas.initialize(setting)
 
     from dsp.store.template_interpreter import TemplateInterpreter
     interp = TemplateInterpreter()
     pg = interp.get_playground()
     for box_with_sws in pg:
-        maas.install(box_with_sws)
+        for sw in box_with_sws["software"]:
+            if sw["installer"] is "maas":
+                maas.install(box_with_sws, sw)

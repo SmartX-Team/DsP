@@ -45,15 +45,15 @@ class InventoryManager(object):
 
     def _get_installer_from_list(self, installer_name):
         for installer_instance in self._registered_installers:
-            if installer_instance.name == installer_name:
+            if installer_instance.name.lower() == installer_name.lower():
                 return installer_instance
         raise InventoryManagerNoInstallerException(installer_name)
 
     def _check_installer(self, installer_instance):
-        installer_status = installer_instance.check_status()
-        if installer_status == installer_instance.InstallerStatus.Fail:
+        installer_status = installer_instance.check_tool_status()
+        if installer_status == installer_instance.InstallationToolStatus.Fail:
             raise InstallerNotWorkingException(installer_instance.name)
-        elif installer_status == installer_instance.InstallerStatus.Disabled:
+        elif installer_status == installer_instance.InstallationToolStatus.Disabled:
             raise InstallerDisabledException(installer_instance.name)
 
     def _read_yaml_file(self, _file):

@@ -20,8 +20,6 @@ class TemplateInterpreter:
     def __init__(self):
         self._store = None
         self._logger = None
-        self._boxes = None
-        self._playground = None
         self.initialize()
 
     def initialize(self):
@@ -31,35 +29,59 @@ class TemplateInterpreter:
 
     def get_playground(self):
         try:
-            box_instances = self._get_box_instances()
-            self._boxes = self._fill_host_boxes(box_instances)
-            template_dict = self._get_template()
-            self._playground = self._put_template_to_box_instances(self._boxes, template_dict)
+            template_dict = self._get_template_dict()
+            info_boxes_dict = self._get_boxes_dict()
         except store_exceptions.ParameterNotFoundException as exc:
             raise store_exceptions.TemplateInterpreterException(exc)
-        return self._playground
 
-    def _get_box_instances(self):
+        playground_topology = list()
+
+        for template_tenant in template_dict:
+            for template_box in template_tenant["boxes"]:
+                box_instance = None
+                if template_box["type"] == "physical.box":
+                    info_box_dict = self._get_box_from_boxes_dict(template_box["name"],
+                                                                  template_box["where"],
+                                                                  info_boxes_dict)
+                    box_instance = self._create_pbox_instance(info_box_dict)
+
+                elif template_box["type"] == "virtual.box":
+                    box_instance = self._create_vbox_instance(template_box)
+
+                box_instance.where = template_box["where"]
+                box_instance.tenant = template_tenant["tenant"]
+                box_instance.software = self._create_software_instances(template_box["software"])
+
+                playground_topology.append(box_instance)
+
+        self._logger.debug(playground_topology)
+        return playground_topology
+
+    def _get_template_dict(self):
+        _template_dict = self._store.get_template()
+        self._validate_template_format(_template_dict)
+        return _template_dict
+
+    def _get_boxes_dict(self):
         _boxes_dict = self._store.get_boxes()
         self._validate_boxes_format(_boxes_dict)
-        box_instances = self._create_box_instances(_boxes_dict)
+        return _boxes_dict
 
-        return box_instances
-
-    # TODO Implement validation for Box.yaml
+        # TODO Implement validation for Box.yaml
     def _validate_boxes_format(self, boxes_dict):
         pass
 
-    def _create_box_instances(self, boxes_dict):
-        box_instances = list()
+    def _create_vbox_instance(self, template_box):
+        box_instance = Box()
+        box_instance.name = template_box["name"]
+        box_instance.type = template_box["type"]
+        # box_instance.account = None
+        # box_instance.network = None
+        # box_instance.setting = None
 
-        for _box_dict in boxes_dict:
-            _box_instance = self._create_box_instance(_box_dict)
-            box_instances.append(_box_instance)
+        return box_instance
 
-        return box_instances
-
-    def _create_box_instance(self, box_dict):
+    def _create_pbox_instance(self, box_dict):
         box_instance = Box()
 
         try:
@@ -86,13 +108,12 @@ class TemplateInterpreter:
 
         return nic_instances
 
-    @staticmethod
-    def _create_nic_instance(nic_dict):
+    def _create_nic_instance(self, nic_dict):
         nic_instance = NetworkInterface()
 
         # Required Parameters
-        nic_instance.nic = nic_dict["nic"]
-        nic_instance.type = nic_dict["type"]
+        nic_instance.nic = nic_dict.get("nic", None)
+        nic_instance.plane = nic_dict["plane"]
         nic_instance.ipaddr = nic_dict["ipaddr"]
         nic_instance.subnet = nic_dict["subnet"]
 
@@ -102,43 +123,26 @@ class TemplateInterpreter:
 
         return nic_instance
 
-    def _fill_host_boxes(self, box_instances):
-        for box_instance in box_instances:
-            box_type = box_instance.type
-            if box_type == "virtual" or box_type == "container":
-                host_box_name = box_instance.setting.get("host_box")
-                host_box_instance = self._find_box_instance(host_box_name, box_instances)
-                box_instance.setting["host_box"] = host_box_instance
-        return box_instances
-
-    def _get_template(self):
-        _template_dict = self._store.get_template()
-        self._validate_template_format(_template_dict)
-        return _template_dict
-
     # TODO Implement validation for playground.yaml
     def _validate_template_format(self, template_dict):
         pass
 
-    def _put_template_to_box_instances(self, box_instances, template_dict):
-        playground = list()
+    def _get_box_from_boxes_dict(self, box_name, box_place, boxes_dict):
+        where_dict = None
+        for where in boxes_dict:
+            if where["where"].lower() == box_place.lower():
+                where_dict = where["boxes"]
 
-        for template_component in template_dict:
-            try:
-                target_box_name = template_component["name"]
-                copied_box_instance = copy.deepcopy(self._find_box_instance(target_box_name, box_instances))
-                copied_box_instance.software = self._create_software_instances_from(template_component)
-                playground.append(copied_box_instance)
-            except KeyError as exc:
-                raise store_exceptions.ParameterNotFoundException("template.yaml", exc.args[0], None)
-            except store_exceptions.NotDefinedBoxException as exc:
-                raise exc
+        for box in where_dict:
+            if box["name"].lower() == box_name.lower():
+                return box
 
-        return playground
+        return None
 
-    @staticmethod
-    def _create_software_instances_from(template_component):
-        software_dicts = template_component["software"]
+    def _create_software_instances(self, software_dicts):
+        if len(software_dicts) == 0:
+            return None
+
         software_instances = list()
         for software_dict in software_dicts:
             software_instance = Software()
@@ -150,13 +154,6 @@ class TemplateInterpreter:
             software_instance.version = software_dict.get("version", None)
             software_instances.append(software_instance)
         return software_instances
-
-    @staticmethod
-    def _find_box_instance(target_box_name, box_instances):
-        for box in box_instances:
-            if box.name == target_box_name:
-                return box
-        raise store_exceptions.NotDefinedBoxException(target_box_name)
 
 
 if __name__ == "__main__":

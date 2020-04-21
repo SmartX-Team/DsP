@@ -88,13 +88,13 @@ class StoreManager(object):
         # Parse the data from YAML template.
         try:
             self._logger.info("Parse YAML from the file: \n" + _yaml_text)
-            return yaml.load(_yaml_text)
+            return yaml.load(_yaml_text, Loader=yaml.FullLoader)
         except yaml.YAMLError as exc:
             if hasattr(exc, 'problem_mark'):
                 mark = exc.problem_mark
                 self._logger.error(("YAML Format Error: In the give YAML text, (Position: line %s, column %s)" %
                                     (mark.line + 1, mark.column + 1)))
-                return None
+                raise yaml.YAMLError(exc)
 
 
 if __name__ == "__main__":
