@@ -1,6 +1,7 @@
 import os
 import logging
 import yaml
+import datetime
 from dsp.abstracted_component.inst_tool_iface import InstallationToolInterface
 from dsp.inventory import inventory_exceptions
 from maas import client as maas_client
@@ -10,6 +11,7 @@ from maas.client.enum import NodeStatus
 class MAASInterface(InstallationToolInterface):
     # For singleton design
     _instance = None
+    _maas_interface = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -30,6 +32,8 @@ class MAASInterface(InstallationToolInterface):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.initialize()
         self._logger.info("{} is initialized".format(self.__class__.__name__))
+
+        MAASInterface._maas_interface = maas_client.connect(self._maas_url, apikey=self._maas_apikey)
 
     def initialize(self, _setting_file="setting.yaml"):
         _file_path = os.path.join(os.path.dirname(__file__), _setting_file)
@@ -63,23 +67,32 @@ class MAASInterface(InstallationToolInterface):
         :param wait: If specified, wait until the deploy is complete.
         :param wait_interval: How often to poll, defaults to 5 seconds
         """
+        tstart = datetime.datetime.now()
+
         maas_desc = target_software
         machine = self._get_machine(box_desc.name)
-        self._logger.debug(yaml.dump(box_desc))
+        # self._logger.debug(yaml.dump(box_desc))
 
-        # if machine.status in [NodeStatus.DEPLOYED, NodeStatus.DEPLOYING]:
-        #     machine.release(wait=True)
-
+        res = None
         if machine.status == NodeStatus.READY:
             linux_ver = None
             if maas_desc:
                 linux_ver = maas_desc.option.get("version", "xenial")
             self._logger.info("Install Linux {} to {}".format(linux_ver, box_desc.name))
-            # machine.deploy(wait=True, distro_series=linux_ver)
+            res = "Installation Complete."
+            machine.deploy(wait=True, distro_series=linux_ver)
         else:
-            self._logger.info("Machine is not ready for install. Status: {}".format(machine.status_name))
+            res = "Machine is not ready for install (Status: {}).".format(machine.status_name)
 
-    def uninstall(self, box_desc, target_software):
+        tend = datetime.datetime.now()
+        elasped_time = (tend - tstart).total_seconds()
+
+        result_msg = "Software: {}, Elasped Time: {}. {}".format(maas_desc.name,
+                                                                 elasped_time,
+                                                                 res)
+        return result_msg
+
+    def uninstall(self, box_desc, mass_desc):
         """
         Release the machine.
 
@@ -96,20 +109,31 @@ class MAASInterface(InstallationToolInterface):
         :param wait_interval: How often to poll, defaults to 5 seconds.
         :type wait_interval: `int`
         """
-        if not target_software["name"] == "linux":
+        tstart = datetime.datetime.now()
+
+
+        if not mass_desc.name == "linux":
             raise inventory_exceptions.InstallerFailException(self.name,
                                                               "Uninstalling {} is not supported".format(
-                                                                  target_software["name"]))
+                                                                  mass_desc["name"]))
 
-        machine = self._get_machine(box_desc['name'])
-        if machine.status == NodeStatus.DEPLOYED:
-            machine.release(wait=True)
-        elif machine.status == NodeStatus.READY:
-            pass
+        res = None
+
+        machine = self._get_machine(box_desc.name)
+        if machine.status in [NodeStatus.DEPLOYED, NodeStatus.FAILED_DEPLOYMENT]:
+            machine.release(wait=True, erase=True, secure_erase=True)
+            res = "Uninstalling pBox is successfully completed."
+
         else:
-            inventory_exceptions.InstallerFailException(self.name,
-                                                        "Machine is not ready for uninstall. Status: {}".
-                                                        format(machine.status_name))
+            res = "Machine is not ready for uninstallation (Status: {}).".format(machine.status_name)
+
+        tend = datetime.datetime.now()
+        elasped_time = (tend - tstart).total_seconds()
+
+        result_msg = "Software: {}, Elasped Time: {}. {}".format(mass_desc.name,
+                                                                 elasped_time,
+                                                                 res)
+        return result_msg
 
     def update(self, box_desc, target_software):
         pass
@@ -120,9 +144,8 @@ class MAASInterface(InstallationToolInterface):
     def _get_machine(self, hostname):
         self._logger.debug(self._maas_url)
         self._logger.debug(self._maas_apikey)
-        _maas_interface = maas_client.connect(self._maas_url, apikey=self._maas_apikey)
 
-        machine_list = _maas_interface.machines.list()
+        machine_list = MAASInterface._maas_interface.machines.list()
         for m in machine_list:
             if m.hostname == hostname:
                 self._logger.debug("{} {}".format(m.hostname, m.architecture))

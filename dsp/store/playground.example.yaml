@@ -2,6 +2,7 @@
   boxes:
   - name: <Box Name>
     where: <A Place of the Box>
+    type: <physical.box / virtual.box>
     software:
     - name: <Software Name>
       installer: <Software Installer Name>

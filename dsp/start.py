@@ -23,6 +23,7 @@ class DsP:
         self._initialize_logger()
         self.interpreter = TemplateInterpreter()
         self.coordinator = ProvisionCoordinator()
+        self._load_setting()
 
     def _initialize_logger(self):
         self._logger = logging.getLogger()
@@ -32,11 +33,24 @@ class DsP:
         sh.setFormatter(fm)
         self._logger.addHandler(sh)
 
-    def start(self):
-        self._load_setting()
+    def start(self, _prov_mode):
+
+        if _prov_mode not in ["provisioning", "release"]:
+            self._logger.error("Mode {} is not supported. Terminated.".format(_prov_mode))
+            exit(1)
+
         self._playground = self.interpreter.get_playground()
         self._logger.debug(self._playground)
-        self.coordinator.provisioning(self._playground)
+
+        prov_result = None
+        if _prov_mode == "provisioning":
+            prov_result = self.coordinator.provisioning(self._playground)
+        elif _prov_mode == "release":
+            prov_result = self.coordinator.release(self._playground)
+
+        if prov_result:
+            while not prov_result.empty():
+                self._logger.debug(prov_result.get())
 
     def _load_setting(self):
         file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "setting.yaml")
@@ -61,17 +75,41 @@ class DsP:
                     return None
 
 
-if __name__ == '__main__':
+def do_epoch(mode):
     tstart = datetime.datetime.now()
 
     dsp_inst = DsP()
-    dsp_inst.start()
+    dsp_inst.start(mode)
 
     tend = datetime.datetime.now()
     elasped_time = tend - tstart
 
-    logging.info(elasped_time.total_seconds())
+    return elasped_time.total_seconds()
 
+
+if __name__ == '__main__':
+    epoch = 5
+    sleep_time = 5
+
+    prov_times = list()
+    release_times = list()
+
+    for i in range(0, epoch):
+        prov_time = do_epoch("provisioning")
+        logging.info("Total Elasped Time for {}: {}".format(prov_time, "provisioning"))
+        prov_times.append(prov_time)
+        time.sleep(sleep_time)
+
+        release_time = do_epoch("release")
+        logging.info("Total Elasped Time for {}: {}".format(prov_time, "provisioning"))
+        release_times.append(release_time)
+        time.sleep(sleep_time)
+
+    logging.info("Elasped Time for Provisioning")
+    logging.info(prov_times)
+
+    logging.info("Elasped Time for Release")
+    logging.info(release_times)
 
 # dsp = DsP()
 # app = flask.Flask(__name__)

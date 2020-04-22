@@ -2,7 +2,7 @@
 import threading
 import logging
 import yaml
-from multiprocessing import Process
+from multiprocessing import Process, Queue, Lock
 from dsp.inventory.inventory_manager import InventoryManager
 from dsp.inventory import inventory_exceptions
 
@@ -43,14 +43,17 @@ class ProvisionCoordinator(object):
         self._logger.debug(scheduled_list)
 
         procs = list()
+        result_queue = Queue()
 
         for box_with_softwares in self._playground:
-            proc = Process(target=self._install_softwares_to_box, args=(box_with_softwares,))
+            proc = Process(target=self._install_softwares_to_box, args=(box_with_softwares, result_queue,))
             procs.append(proc)
             proc.start()
 
         for proc in procs:
             proc.join()
+
+        return result_queue
 
     def scheduling(self, playground):
         scheduled = list()
@@ -70,10 +73,10 @@ class ProvisionCoordinator(object):
 
         return scheduled
 
-    def _install_softwares_to_box(self, box_with_softwares):
+    def _install_softwares_to_box(self, box_with_softwares, result_queue):
         self._logger.debug("A New Installing Process Started. Box: {}".format(box_with_softwares.name))
         software_list = box_with_softwares.software
-        install_results = dict()
+        box_prov_res = list()
 
         for software in software_list:
             installer_name = software.installer
@@ -83,12 +86,13 @@ class ProvisionCoordinator(object):
                 software.name,
                 installer_instance.name)
             )
-            install_results[software.name] = self._trigger_installation(installer_instance,
-                                                                        box_with_softwares,
-                                                                        software)
+            sw_res = self._trigger_installation(installer_instance,
+                                                box_with_softwares,
+                                                software)
+            box_prov_res.append(sw_res)
 
         self._logger.debug("A Process Finished. Box: {}".format(box_with_softwares.name))
-        return install_results
+        result_queue.put([box_with_softwares.name, box_prov_res])
 
     def _trigger_installation(self, installer_instance, box_with_softwares, target_software):
         install_result = installer_instance.install(box_with_softwares, target_software)
@@ -98,19 +102,22 @@ class ProvisionCoordinator(object):
         self._playground = playground
 
         procs = list()
+        result_queue = Queue()
 
         for box_with_softwares in self._playground:
-            proc = Process(target=self._uninstall_softwares_from_box, args=(box_with_softwares,))
+            proc = Process(target=self._uninstall_softwares_from_box, args=(box_with_softwares, result_queue,))
             procs.append(proc)
             proc.start()
 
         for proc in procs:
             proc.join()
 
-    def _uninstall_softwares_from_box(self, box_with_softwares):
+        return result_queue
+
+    def _uninstall_softwares_from_box(self, box_with_softwares, result_queue):
         self._logger.debug("A New Uninstalling Process Started. Box: {}".format(box_with_softwares.name))
         software_list = box_with_softwares.software
-        install_results = dict()
+        box_rel_res = list()
 
         for software in software_list:
             installer_name = software.installer
@@ -120,12 +127,13 @@ class ProvisionCoordinator(object):
                 software.name,
                 installer_instance.name)
             )
-            install_results[software.name] = self._trigger_installation(installer_instance,
+            rel_res = self._trigger_uninstallation(installer_instance,
                                                                         box_with_softwares,
                                                                         software)
+            box_rel_res.append(rel_res)
 
         self._logger.debug("A Process Finished. Box: {}".format(box_with_softwares.name))
-        return install_results
+        result_queue.put([box_with_softwares.name, box_rel_res])
 
     def _trigger_uninstallation(self, installer_instance, box_with_softwares, target_software):
         install_result = installer_instance.uninstall(box_with_softwares, target_software)
