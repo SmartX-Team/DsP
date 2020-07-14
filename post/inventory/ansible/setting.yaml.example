@@ -1,0 +1,17 @@
+name: "ansible"
+target_software:
+  - opendaylight
+  - onos
+  - openvswitch
+  - openstack
+  - openstack-vbox
+  - kubernetes
+executable: "start.py"
+config:
+  inventory:
+    root_dir: "<root_directory_of_ansible_inventory>"
+  playbook:
+    root_dir: "<root_directory_of_ansible_playbook>"
+    openstack-vbox:
+      install: compose_vbox.yaml
+      uninstall: release_vbox.yaml

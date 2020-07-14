@@ -1,0 +1,15 @@
+- cluster:
+    name: "<Cluster Name>"
+    boxes:
+    - name: "<Box Name>"
+      type: "<physical.box|virtual.box>"
+      account:
+        id: id
+        password: pass
+      network:
+        - plane: Management
+          ipaddr: "<Network IP Address>"
+          subnet: "<Network Subnet (e.g. 255.255.255.0)>"
+          gateway: "<Network Gateway IP Address>"
+          dns:
+            - "<DNS IP Address>"

@@ -1,0 +1,17 @@
+- tenant: <Tenant Name>
+  boxes:
+    - name: <Box Name>
+      where: <A Place of the Box>
+      type: <physical.box / virtual.box>
+      software:
+        - name: <Software Name>
+          installer: <Software Installer Name>
+          option:
+              <Detailed Options for Installer. Refer to README file in each Installer>
+  functions:
+    - name: <Function Name>
+      where: <A place where the function attaches>
+      type: multi-sec.measure
+      installer: ansible
+      option:
+        rule: vxlan

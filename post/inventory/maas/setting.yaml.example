@@ -1,0 +1,12 @@
+name: "maas"
+target_software:
+  - "ubuntu"
+  - "centos"
+executable: "start.py"
+config:
+  maas:
+    maas_ip: "<maas_region_controller_ip_address>"
+    maas_port: "<maas_region_controller_port>"
+    apikey: "<maas_api_key>"
+  ubuntu:
+    default_version: "xenial"
