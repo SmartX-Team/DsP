@@ -1,0 +1,57 @@
+all:
+  children:
+    gj:
+      children:
+        post:
+          hosts:
+            <hostname>:
+              network:
+                power:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+
+                management:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+                  gateway: <gateway ip address>
+                  dns:
+                    - <DNS ip address>
+                control:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+
+                data:
+                  ipaddr: <ip address>
+                  subnet: <subnet amsk>
+
+              ansible_host: "{{ network.management.ipaddr }}"
+              ansible_user: <linux id>
+        cube:
+          hosts:
+            <hostname>:
+              network:
+                power:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+
+                management:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+                  gateway: <gateway ip address>
+                  dns:
+                    - <DNS ip address>
+                control:
+                  ipaddr: <ip address>
+                  subnet: <subnet mask>
+
+                data:
+                  ipaddr: <ip address>
+                  subnet: <subnet amsk>
+
+              ansible_host: "{{ network.management.ipaddr }}"
+              ansible_user: <Linux ID>
+
+          vars:
+            ansible_port: <ssh port number>
+            ansible_user: <linux id>
+            ansible_become: yes

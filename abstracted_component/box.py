@@ -95,8 +95,8 @@ class BoxJSONEncoder(json.JSONEncoder):
 
             res["setting"] = o.setting
 
-            res["software"] = list()
-            if len(o.software) > 0:
+            if o.software:
+                res["software"] = list()
                 for s in o.software:
                     res["software"].append(json.dumps(s, cls=SoftwareJSONEncoder))
 

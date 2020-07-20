@@ -1,0 +1,44 @@
+- name: launch a compute instance
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Create a project
+      os_user:
+        state: present
+        auth:
+          auth_url: http://210.117.251.3:5000/v3
+          username: admin
+          password: zpdldnjs123
+          project_name: admin
+          os_user_domain_name: default
+          os_project_domain_name: default
+        name: test-user
+        password: test-user
+        email: demo@example.com
+        domain: default
+        default_project: demo
+
+    - name: Create a user
+      os_user:
+        state: present
+        auth:
+          auth_url: http://210.117.251.3:5000/v3
+          username: admin
+          password: zpdldnjs123
+          project_name: admin
+          os_user_domain_name: default
+          os_project_domain_name: default
+        name: test-user
+        password: test-user
+        email: demo@example.com
+        domain: default
+        default_project: demo
+
+    - name: Load a default SSH key
+      os_keypair:
+        cloud: koneadmin
+        state: present
+        name: default_key
+        public_key_file: /home/me/.ssh/id_rsa.pub

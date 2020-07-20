@@ -11,7 +11,8 @@ from tower.provisioning_coordinator import ProvisionCoordinator
 class DsPTower:
     def __init__(self):
         self._logger: logging
-        self._playground = None
+        self._physical_topology = None
+        self._desired_playground = None
         self.interpreter: TemplateInterpreter = TemplateInterpreter()
         self.coordinator: ProvisionCoordinator = ProvisionCoordinator()
 
@@ -36,11 +37,12 @@ class DsPTower:
             self._logger.error("Mode {} is not supported. Terminated.".format(_prov_mode))
             exit(1)
 
-        self._playground = self.interpreter.get_playground()
+        self._physical_topology = self.interpreter.get_physical_topology()
+        self._desired_playground = self.interpreter.get_playground()
 
         prov_result = None
         if _prov_mode == "provisioning":
-            prov_result = self.coordinator.compose(self._playground)
+            prov_result = self.coordinator.compose(self._physical_topology, self._desired_playground)
 
         # elif _prov_mode == "release":
         #     prov_result = self.coordinator.release(self._playground)
@@ -66,42 +68,3 @@ class DsPTower:
                                         + " (Position: line %s, column %s)" %
                                         (mark.line + 1, mark.column + 1)))
                     return None
-
-
-def do_epoch(mode: str) -> float:
-    tstart = datetime.datetime.now()
-
-    dsp_inst = DsPTower()
-    dsp_inst.start(mode)
-
-    tend = datetime.datetime.now()
-    elasped_time = tend - tstart
-
-    return elasped_time.total_seconds()
-
-
-if __name__ == '__main__':
-    epoch = 1
-    sleep_time = 0
-
-    prov_time = do_epoch("provisioning")
-
-    # prov_times = list()
-    # release_times = list()
-    #
-    # for i in range(0, epoch):
-    #     prov_time = do_epoch("provisioning")
-    #     logging.info("Total Elasped Time for {}: {}".format(prov_time, "provisioning"))
-    #     prov_times.append(prov_time)
-    #     time.sleep(sleep_time)
-    #
-    #     release_time = do_epoch("release")
-    #     logging.info("Total Elasped Time for {}: {}".format(prov_time, "provisioning"))
-    #     release_times.append(release_time)
-    #     time.sleep(sleep_time)
-    #
-    # logging.info("Elasped Time for Provisioning")
-    # logging.info(prov_times)
-    #
-    # logging.info("Elasped Time for Release")
-    # logging.info(release_times)

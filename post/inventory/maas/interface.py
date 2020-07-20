@@ -4,7 +4,7 @@ import uuid
 import logging
 import json
 import time
-from dsp.post.inventory import inventory_exceptions
+from post.inventory import inventory_exceptions
 
 
 class MaasInterface:

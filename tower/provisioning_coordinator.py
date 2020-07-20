@@ -5,13 +5,11 @@ import time
 import logging
 import yaml
 import json
-from multiprocessing import Process, Queue, Lock
+from multiprocessing import Process, Queue
+import requests
 from pprint import pprint
 
 from abstracted_component.cluster import Cluster, ClusterJSONEncoder
-
-from tower.post_interface import swagger_client
-from swagger_client.rest import ApiException
 
 
 class ProvisionCoordinator(object):
@@ -32,20 +30,35 @@ class ProvisionCoordinator(object):
         self._logger.setLevel(logging.DEBUG)
         self._logger.info("{} is initialized".format(self.__class__.__name__))
 
-    def compose(self, playground):
-        return self._execute_coordination("compose", playground)
+    def compose(self, topology, playground):
+        self._in_parallel("reload", topology)
+        return self._in_parallel("compose", playground)
 
-    def release(self, playground):
-        return self._execute_coordination("release", playground)
+    def update(self, topology, playground):
+        self._in_parallel("reload", topology)
+        return self._in_parallel("update", playground)
 
-    def _execute_coordination(self, mode, playground):
+    def release(self, topology, playground):
+        self._in_parallel("reload", topology)
+        return self._in_parallel("release", playground)
+
+    def _in_parallel(self, mode, playground):
         procs = list()
         result_queue = Queue()
 
         for cluster in playground:
             proc = None
-            if mode == "compose":
+
+            # check the status of cluster posts
+            # update boxes information
+            if mode == "reload":
+                proc = Process(target=self._reload_cluster_description, args=(cluster, result_queue,))
+
+            elif mode == "compose":
                 proc = Process(target=self._compose_cluster, args=(cluster, result_queue,))
+
+            elif mode == "update":
+                proc = Process(target=self._update_cluster, args=(cluster, result_queue,))
 
             elif mode == "release":
                 proc = Process(target=self._release_cluster, args=(cluster, result_queue,))
@@ -58,29 +71,54 @@ class ProvisionCoordinator(object):
 
         return result_queue
 
-    def _compose_cluster(self, cluster_desc: Cluster, result_queue: Queue) -> None:
-        self._logger.debug("A New Installing Process Started. cluster: {}".format(cluster_desc.name))
-
-        _post_interface: swagger_client.DspApi = swagger_client.DspApi(swagger_client.ApiClient())
+    def _reload_cluster_description(self, cluster_desc: Cluster, result_queue: Queue):
+        self._logger.debug("A New Reloading Process Started. cluster: {}".format(cluster_desc.name))
 
         req_msg = json.dumps(cluster_desc, cls=ClusterJSONEncoder)
         self._logger.debug("HTTP Req Body: {}".format(req_msg))
-        c = json.loads(req_msg, object_hook=Cluster.json_decode)
-        pprint(c)
-        # resp_msg = _post_interface.dspcompose(req_msg)
-        # self._logger.debug("A Process Finished. cluster: {}".format(cluster_desc.name))
+        resp_msg = self.call_post_api("http://127.0.0.1:8080/{}".format("topology"), 'put', req_msg)
+
+        self._logger.debug("A Process Finished. cluster: {}".format(resp_msg))
+
+    def _compose_cluster(self, cluster_desc: Cluster, result_queue: Queue) -> None:
+        self._logger.debug("A New Installing Process Started. cluster: {}".format(cluster_desc.name))
+
+        req_msg = json.dumps(cluster_desc, cls=ClusterJSONEncoder)
+        self._logger.debug("HTTP Req Body: {}".format(req_msg))
+        resp_msg = self.call_post_api("http://127.0.0.1:8080/{}".format("cluster"), 'post', req_msg)
+        self._logger.debug("A Process Finished. cluster: {}".format(resp_msg))
+
+        result_queue.put([cluster_desc.name, resp_msg])
+
+    def _update_cluster(self, cluster_desc: Cluster, result_queue: Queue) -> None:
+        self._logger.debug("A New Process for updating a cluster is started. Cluster: {}".format(cluster_desc.name))
+
+        # _post_interface: swagger_client.DspApi = swagger_client.DspApi(swagger_client.ApiClient())
+        #
+        # req_msg = json.dumps(cluster_desc)
+        # self._logger.debug(req_msg)
+
+        # resp_msg = _post_interface.dspupdate(req_msg)
+        # self._logger.debug("The Process finished the update tasks. Cluster: {}".format(cluster_desc.name))
         # result_queue.put([cluster_desc.name, resp_msg])
 
     def _release_cluster(self, cluster_desc: Cluster, result_queue: Queue) -> None:
         self._logger.debug("A New Uninstalling Process Started. Box: {}".format(cluster_desc.name))
-
-        _post_interface: swagger_client.DspApi = swagger_client.DspApi(swagger_client.ApiClient())
-
-        req_msg = json.dumps(cluster_desc)
-        self._logger.debug(req_msg)
+        # _post_interface: swagger_client.DspApi = swagger_client.DspApi(swagger_client.ApiClient())
+        #
+        # req_msg = json.dumps(cluster_desc)
+        # self._logger.debug(req_msg)
         # resp_msg = _post_interface.dsprelease(req_msg)
         # self._logger.debug("A Process Finished. Box: {}".format(cluster_desc.name))
         # result_queue.put([cluster_desc.name, resp_msg])
+
+    def call_post_api(self, url: str, method: str, message: str = None) -> str:
+        headers = {'Content-Type': 'application/json; charset=utf-8'}
+
+        http_req = getattr(requests, method)
+        response = http_req(url, data=message, headers=headers)
+
+        return response
 
     def _read_yaml_file(self, _file: str) -> dict or Exception:
         # Parse the data from YAML template.

@@ -1,0 +1,18 @@
+clouds:
+  post_admin:
+    auth:
+      auth_url: <OpenStack Authentication URL>
+      username: <OpenStack Admin ID>
+      password: <OpenStack Admin Password>
+      project_name: <OpenStack Admin Project>
+      user_domain_name: <OpenStack Domain Name>
+      project_domain_name: <OpenStack Domain Name>
+  gist-jsshin:
+    auth:
+      auth_url: <OpenStack Authentication URL>
+      username: <OpenStack User ID>
+      password: <OpenStack User Password>
+      project_name: <OpenStack User Project>
+      user_domain_name: <OpenStack Domain Name>
+      project_domain_name: <OpenStack Domain Name>
+    key_name: <User Key Name Injecting to Composed vBoxes>

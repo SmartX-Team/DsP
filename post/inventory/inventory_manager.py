@@ -1,7 +1,11 @@
 import logging
 import yaml
-from dsp.post.inventory.inventory_exceptions import *
-from dsp.post.inventory import __all__ as installer_classes
+
+from abstracted_component.inst_tool_iface import InstallationToolInterface
+from typing import List
+
+from post.inventory.inventory_exceptions import *
+from post.inventory import __all__ as installer_classes
 
 
 class InventoryManager(object):
@@ -13,20 +17,17 @@ class InventoryManager(object):
         return cls._instance
 
     def __init__(self):
-        self._registered_installers = list()
-        self._logger = None
+        self._registered_installers: List[InstallationToolInterface] = list()
+        self._logger: logging = logging.getLogger(self.__class__.__name__)
+        self._register_installers()
 
-        self._initialize()
+    def _register_installers(self):
+        for installer_class in installer_classes:
+            installer_instance = installer_class()
+            self._registered_installers.append(installer_instance)
 
-    def _initialize(self):
-        self._logger = logging.getLogger(self.__class__.__name__)
-        # self._register_installers()
-        # self._logger.info("{} is initialized".format(self.__class__.__name__))
-
-    # def _register_installers(self):
-    #     for installer_class in installer_classes:
-    #         installer_instance = installer_class()
-    #         self._registered_installers.append(installer_instance)
+    def get_installers(self):
+        return self._registered_installers
 
     def get_installer(self, _prefix, _postfix=None):
         if _postfix:
@@ -67,7 +68,7 @@ class InventoryManager(object):
                 self._logger.debug("A new installer was created and registered: {}".format(_installer_instance.name))
                 return _installer_instance
 
-        self._logger("Installer {} does not supported".format(_installer_name_prefix))
+        self._logger.debug("Installer {} does not supported".format(_installer_name_prefix))
         return None
 
     def _check_installer(self, installer_instance):

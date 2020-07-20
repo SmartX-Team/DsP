@@ -1,0 +1,23 @@
+- name: launch a compute instance
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    tenant: gist-jsshin
+    vbox_name: vbox1
+    vbox_site: GIST
+    vbox_image: Ubuntu-18.04
+    vbox_flavor: m1.small
+    vbox_nics: "net-name=Net-MGMT,net-name=Net-CTRL-{{ vbox_site }},net-name=Net-DATA-{{ vbox_site }}"
+  tasks:
+    - name: launch an instance
+      os_server:
+        state: present
+        cloud: "{{ tenant }}"
+        name: "{{ vbox_name }}"
+        availability_zone: "{{ vbox_site }}-Zone"
+        image: "{{ vbox_image }}"
+        timeout: 200
+        flavor: "{{ vbox_flavor }}"
+        security_groups: default
+        nics: "{{ vbox_nics }}"

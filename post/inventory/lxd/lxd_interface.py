@@ -4,7 +4,7 @@ import urllib3
 import ipaddress
 from pylxd import Client
 from pylxd import exceptions as LXDExceptions
-from dsp.post.inventory import inventory_exceptions
+from post.inventory import inventory_exceptions
 
 
 class LXDInterface(object):

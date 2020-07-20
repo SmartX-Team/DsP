@@ -1,4 +1,4 @@
-from dsp.abstracted_component.inst_tool_iface import InstallationToolInterface
+from abstracted_component.inst_tool_iface import InstallationToolInterface
 
 
 class LXDInstallationToolInterface(InstallationToolInterface):

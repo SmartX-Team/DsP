@@ -4,8 +4,7 @@ import json
 import logging
 import subprocess
 import datetime
-from dsp.abstracted_component.inst_tool_iface import InstallationToolInterface
-from dsp.post.inventory.inventory_exceptions import *
+from abstracted_component.inst_tool_iface import InstallationToolInterface
 
 
 class AnsibleInterface(InstallationToolInterface):

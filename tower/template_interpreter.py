@@ -20,14 +20,35 @@ class TemplateInterpreter:
         return cls._instance
 
     def __init__(self):
-        self._store = None
-        self._logger = None
-        self.initialize()
+        self._store: StoreManager = StoreManager()
+        self._logger: logging = logging.getLogger(self.__class__.__name__)
 
-    def initialize(self):
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._store = StoreManager()
-        self._logger.info("{} is initialized".format(self.__class__.__name__))
+    def get_physical_topology(self):
+        clusters_desc = self._store.get_file_dict("box.yaml")
+        self._validate_boxes_format(clusters_desc)
+
+        cluster_instances = list()
+
+        for cluster_desc in clusters_desc:
+            cluster_instance = Cluster()
+            cluster_instance.name = cluster_desc["cluster"]["name"]
+            cluster_instance.boxes = list()
+
+            for box_desc in cluster_desc["cluster"]["boxes"]:
+                box_instance = Box()
+                box_instance.name = box_desc["name"]
+                box_instance.where = cluster_instance.name
+                box_instance.tenant = None
+                box_instance.type = box_desc["type"]
+                box_instance.account = box_desc["account"]
+                box_instance.network = box_desc["network"]
+                box_instance.setting = None
+                box_instance.software = None
+                cluster_instance.boxes.append(box_instance)
+
+            cluster_instances.append(cluster_instance)
+
+        return cluster_instances
 
     def get_playground(self):
         self._logger.debug("Start loading playground template from the store")

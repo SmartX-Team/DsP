@@ -1,0 +1,12 @@
+- name: Release virtual boxes in Post
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    tenant: gist-jsshin
+    vbox_name: vbox1
+  tasks:
+    - name: Remove a virtual box
+      os_server:
+        state: absent
+        cloud: "{{ tenant }}"
+        name: "{{ vbox_name }}"

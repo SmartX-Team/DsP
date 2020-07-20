@@ -5,10 +5,10 @@ class InstallationToolInterface(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        self.name = str
-        self.version = str
-        self.software = list
-        self._setting = dict
+        self.name: str
+        self.version: str
+        self.software: list
+        self._setting: dict
 
     @abc.abstractmethod
     def initialize(self, setting_file):
