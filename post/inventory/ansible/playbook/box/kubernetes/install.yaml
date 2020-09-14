@@ -1,0 +1,19 @@
+- name: compose a function
+  vars:
+    become: yes
+    kubespray_rootdir: /opt/
+    kubespray_version: "release-2.13"
+
+  tasks:
+    - name: Create the root directory for Kubespray
+      file:
+        path: "{{ kubespray_rootdir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Clone the git repository of Kubespray
+      git:
+        repo: 'https://foosball.example.org/path/to/repo.git'
+        dest: "{{ kubespray_rootdir }}"
+        version: "{{ kubespray_version }}"
+        update: no

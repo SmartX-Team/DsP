@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
+import os
 import logging
 import yaml
 from multiprocessing import Process, Queue
 from post.inventory.inventory_manager import InventoryManager
 from post.inventory import inventory_exceptions
-from multiprocessing import Lock
 
 from abstracted_component.cluster import Cluster
 from abstracted_component.box import Box
 from abstracted_component.function import Function
 from typing import List, Dict
+
+# Todo: Remove setting.yaml files of installer tools
+# Todo: When creating installer tools, inject their configuration
 
 
 class DsPPost(object):
@@ -23,9 +26,10 @@ class DsPPost(object):
     def __init__(self):
         self._logger: logging
         self._playground: dict or None = None
-        self._cluster_name: str
-        self._boxes_desc: Dict[Box] = dict()
+        self._boxes: List[Box] = list()
+        self._functions: List[Function] = list()
 
+        self._setting = self._load_setting()
         self._inventory: InventoryManager = InventoryManager()
         self._initialize_logger()
 
@@ -37,9 +41,28 @@ class DsPPost(object):
         sh.setFormatter(fm)
         self._logger.addHandler(sh)
 
+    def _load_setting(self):
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "setting.yaml")
+        return self._read_yaml_file(file_path)
     #
     # Public Methods that are called by API servers.
     #
+    def reload_cluster(self, cluster_topology: dict):
+        for box_desc in cluster_topology["cluster"]["boxes"]:
+            box_desc["where"] = cluster_topology["cluster"]["name"]
+            matched = False
+            for prev_box in self._boxes:
+                if prev_box.name == box_desc["name"] and prev_box.where == box_desc["where"]:
+                    # Update the subset of the attributes
+                    prev_box.account = box_desc["account"]
+                    prev_box.network = box_desc["network"]
+                    matched = True
+                    break
+
+            if not matched:
+                box_instance = Box.create_from_dict(box_desc)
+                self._boxes.append(box_instance)
+
     def compose(self, playground: Cluster):
         self._logger.debug("Compose started")
         self._playground = playground
@@ -52,7 +75,7 @@ class DsPPost(object):
         if playground.boxes:
             self._logger.debug("1")
             _proc_method = self._provision_box
-            self._in_parallel(_proc_method, playground.boxes, result_queue)
+            # self._in_parallel(_proc_method, playground.boxes, result_queue)
 
         if playground.functions:
             self._logger.debug("2")
@@ -94,16 +117,6 @@ class DsPPost(object):
     def get_installer(self, installer_name: str):
         return self._inventory.get_installer(installer_name)
 
-    def reload_cluster(self, cluster_instance: Cluster):
-        for box_instance in cluster_instance.boxes:
-            box_name = box_instance.name
-            if box_name in self._boxes_desc.keys():
-                print("The box was already registered: {}".format(box_name))
-                continue
-            else:
-                self._boxes_desc[box_name] = box_instance
-                print("Register a new box: {}".format(box_name))
-
     #
     # Private Methods
     #
@@ -142,32 +155,41 @@ class DsPPost(object):
 
         return scheduled
 
-    def _provision_box(self, box_desc: Box, _inven_mgr: InventoryManager, result_queue: Queue):
-        self._logger.info("A New Installing Process Started. Name: {}".format(box_desc.name))
-        software_list = box_desc.software
-        provision_log = list()
+    def _get_loaded_box(self, box_name):
+        for b in self._boxes:
+            if b.name == box_name:
+                return b
 
-        if box_desc.name in self._boxes_desc.keys():
-            res ="Find the matched box: {}".format(box_desc.name)
-        else:
-            res = "Cannot found the matched box: {}".format(box_desc.name)
+        return None
+
+    def _provision_box(self, desire_box_desc: Box, _inven_mgr: InventoryManager, result_queue: Queue):
+        self._logger.info("A New Installing Process Started. Name: {}".format(desire_box_desc.name))
+
+        target_box = self._get_loaded_box(desire_box_desc.name)
+        if not target_box:
+            self._logger.error("The target box \"{}\" is not managed by the post".format(desire_box_desc.name))
+            return None
+
+        software_list = desire_box_desc.software
+
+        provision_log = list()
 
         for software in software_list:
             installer_name = software.installer
             installer_instance = _inven_mgr.get_installer(installer_name)
 
             self._logger.info("Starting Installation. Box: {}, Software: {}, Installer: {}".format(
-                box_desc.name,
+                desire_box_desc.name,
                 software.name,
                 installer_instance.name)
             )
 
-            # res = self._execute_installer(installer_instance, box_desc, software)
-            self._logger.debug(res)
-            provision_log.append(res)
+            # res = self._execute_installer(installer_instance, target_box, software)
+            # self._logger.debug(res)
+            # provision_log.append(res)
 
-        self._logger.info("A Process Finished. Box: {}".format(box_desc.name))
-        result_queue.put([box_desc.name, provision_log])
+        self._logger.info("A Process Finished. Box: {}".format(desire_box_desc.name))
+        result_queue.put([desire_box_desc.name, provision_log])
 
     def _provision_func(self, func_desc: Function, _inven_mgr: InventoryManager, result_queue: Queue):
         self._logger.debug("A new provisioning process started. Function: {}".format(func_desc.name))
@@ -184,21 +206,21 @@ class DsPPost(object):
 
         box_name = func_desc.where.split(".")[1]
         # box_desc = self._find_box_desc(box_name)
-        box_desc = self._boxes_desc[box_name]
+        target_box = self._get_loaded_box(box_name)
 
-        res = "A box for the function: {}".format(box_desc.name)
-        # res = self._execute_installer(installer_instance, box_desc, func_desc)
+        res = "A box for the function: {}".format(target_box.name)
+        res = self._execute_installer(installer_instance, target_box, func_desc)
         provision_log.append(res)
         self._logger.debug(res)
 
-        self._logger.debug("A Process Finished. Function: {}".format(box_desc.name))
-        result_queue.put([box_desc.name, provision_log])
+        self._logger.debug("A Process Finished. Function: {}".format(target_box.name))
+        result_queue.put([target_box.name, provision_log])
 
-    def _find_box_desc(self, box_name: str):
-        for box_desc in self._boxes_desc:
-            if box_desc.name == box_name:
-                return box_desc
-        return None
+    # def _find_box_desc(self, box_name: str):
+    #     for box_desc in self._boxes_desc:
+    #         if box_desc.name == box_name:
+    #             return box_desc
+    #     return None
 
     def _execute_installer(self, installer_instance, box_with_softwares, target_software):
         install_result = installer_instance.install(box_with_softwares, target_software)

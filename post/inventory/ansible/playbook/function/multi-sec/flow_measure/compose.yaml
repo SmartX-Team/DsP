@@ -1,0 +1,42 @@
+- name: compose a function
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    function_name: "eno7_measure"
+    networking_point: "eno7"
+    post_ipaddr: "127.0.0.1"
+    post_kafka_port: "7077"
+    post_kafka_topic: "measure"
+
+    output_interval: 1
+    function_type: "measurement"
+    root_dir: "/opt/multi-sec/measurement"
+
+  tasks:
+    - name: create a root directory
+      file:
+        path: "{{ root_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: copy a python file for a measurement function
+      copy:
+        src: "{{ item }}"
+        dest: "{{ root_dir }}"/"{{ item }}"
+        owner: root
+        group: root
+        mode: '0644'
+      with_items:
+        - measurement.py
+        - measurement.c
+
+    - name: template a setting file
+      template:
+        src: setting.yaml.j2
+        dest: "{{ root_dir }}"/setting.yaml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: execute a function
+      command: /usr/bin/python "{{ root_dir }}"/measurement.py

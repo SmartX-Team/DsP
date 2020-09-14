@@ -1,4 +1,5 @@
 import json
+import logging
 
 from flask import Flask, request, make_response, jsonify
 from post.dsp_post import DsPPost
@@ -10,21 +11,23 @@ app = Flask(__name__)
 
 @app.route('/topology', methods=['PUT'])
 def reload_cluster_topology():
-    cluster = json.loads(request.data, object_hook=Cluster.json_decode)
-    post.reload_cluster(cluster)
+    logging.debug("Received Data: {}".format(request.data))
+    cluster_topology = json.loads(request.data)
+    post.reload_cluster(cluster_topology)
     resp = make_response("Received", 200)
     return resp
 
 
 @app.route('/cluster', methods=['POST'])
 def compose_cluster():
+    logging.debug("Received Data: {}".format(request.data))
     cluster = json.loads(request.data, object_hook=Cluster.json_decode)
     post.compose(cluster)
     resp = make_response("Received", 200)
     return resp
 
 
-@app.route('/cluster', methods=['DELETE'])
+@app.route('/cluster', methods=["PUT"])
 def update_cluster():
     cluster = json.loads(request.data, object_hook=Cluster.json_decode)
     post.update_function(cluster)
@@ -32,7 +35,7 @@ def update_cluster():
     return resp
 
 
-@app.route('/cluster', methods=["PUT"])
+@app.route('/cluster', methods=['DELETE'])
 def release_cluster():
     cluster = json.loads(request.data, object_hook=Cluster.json_decode)
     post.release(cluster)
@@ -71,4 +74,5 @@ def no_page(error):
 
 
 def main():
+    logging.basicConfig(format='%(asctime)s-%(levelname)s-%(filename)s:%(lineno)d-%(funcName)s()-%(message)s')
     app.run(host="127.0.0.1", port="8080")

@@ -13,6 +13,21 @@ class NetworkInterface:
         self.dns: list or None = None
 
     @classmethod
+    def create_from_dict(cls, d):
+        if not isinstance(d, dict):
+            return None
+
+        net_iface_inst = NetworkInterface()
+        net_iface_inst.nic = d.get("nic", None)
+        net_iface_inst.plane = d.get("plane", None)
+        net_iface_inst.ipaddr = d.get("ipaddr", None)
+        net_iface_inst.gateway = d.get("gateway", None)
+        net_iface_inst.subnet = d.get("subnet", None)
+        net_iface_inst.dns = d.get("dns", None)
+
+        return net_iface_inst
+
+    @classmethod
     def json_decode(cls, o):
         if "__NetworkInterface__" in o:
             niface_inst: NetworkInterface = NetworkInterface()
@@ -52,6 +67,25 @@ class Box:
         self.network: List[NetworkInterface] or None = None
         self.setting: dict or None = None
         self.software: List[Software] or None = None
+
+    @classmethod
+    def create_from_dict(cls, d):
+        if not isinstance(d, dict):
+            return None
+
+        box_instance = Box()
+        box_instance.name = d["name"]
+        box_instance.where = d.get("where", None)
+        box_instance.tenant = d.get("tenant", None)
+        box_instance.type = d["type"]
+        box_instance.account = d.get("account", None)
+        box_instance.network = list()
+        for n in d.get("network"):
+            box_instance.network.append(NetworkInterface.create_from_dict(n))
+        box_instance.setting = d.get("setting", None)
+        box_instance.software = d.get("software", None)
+
+        return box_instance
 
     @classmethod
     def json_decode(cls, o):

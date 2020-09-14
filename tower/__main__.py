@@ -38,4 +38,4 @@ def main():
     # logging.info("Elasped Time for Release")
     # logging.info(release_times)
 
-    prov_time = do_epoch("provisioning")
+    prov_time = do_epoch("compose")

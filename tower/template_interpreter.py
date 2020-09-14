@@ -23,32 +23,32 @@ class TemplateInterpreter:
         self._store: StoreManager = StoreManager()
         self._logger: logging = logging.getLogger(self.__class__.__name__)
 
-    def get_physical_topology(self):
-        clusters_desc = self._store.get_file_dict("box.yaml")
-        self._validate_boxes_format(clusters_desc)
-
-        cluster_instances = list()
-
-        for cluster_desc in clusters_desc:
-            cluster_instance = Cluster()
-            cluster_instance.name = cluster_desc["cluster"]["name"]
-            cluster_instance.boxes = list()
-
-            for box_desc in cluster_desc["cluster"]["boxes"]:
-                box_instance = Box()
-                box_instance.name = box_desc["name"]
-                box_instance.where = cluster_instance.name
-                box_instance.tenant = None
-                box_instance.type = box_desc["type"]
-                box_instance.account = box_desc["account"]
-                box_instance.network = box_desc["network"]
-                box_instance.setting = None
-                box_instance.software = None
-                cluster_instance.boxes.append(box_instance)
-
-            cluster_instances.append(cluster_instance)
-
-        return cluster_instances
+    # def get_physical_topology(self):
+    #     clusters_desc = self._store.get_file_dict("box.yaml")
+    #     self._validate_boxes_format(clusters_desc)
+    #
+    #     cluster_instances = list()
+    #
+    #     for cluster_desc in clusters_desc:
+    #         cluster_instance = Cluster()
+    #         cluster_instance.name = cluster_desc["cluster"]["name"]
+    #         cluster_instance.boxes = list()
+    #
+    #         for box_desc in cluster_desc["cluster"]["boxes"]:
+    #             box_instance = Box()
+    #             box_instance.name = box_desc["name"]
+    #             box_instance.where = cluster_instance.name
+    #             box_instance.tenant = None
+    #             box_instance.type = box_desc["type"]
+    #             box_instance.account = box_desc["account"]
+    #             box_instance.network = box_desc["network"]
+    #             box_instance.setting = None
+    #             box_instance.software = None
+    #             cluster_instance.boxes.append(box_instance)
+    #
+    #         cluster_instances.append(cluster_instance)
+    #
+    #     return cluster_instances
 
     def get_playground(self):
         self._logger.debug("Start loading playground template from the store")
@@ -58,8 +58,8 @@ class TemplateInterpreter:
             template_dict = self._store.get_file_dict("playground.yaml")
             self._validate_template_format(template_dict)
 
-            info_boxes_dict = self._store.get_file_dict("box.yaml")
-            self._validate_boxes_format(info_boxes_dict)
+            physical_topology = self._store.get_file_dict("box.yaml")
+            self._validate_boxes_format(physical_topology)
 
         except store_exceptions.ParameterNotFoundException as exc:
             raise store_exceptions.TemplateInterpreterException(exc)
@@ -87,7 +87,7 @@ class TemplateInterpreter:
             self._init_funcions_desc(functions_instances, tenant_functions_desc)
 
             # Fill box instances with additional information
-            self._fill_boxes_inst(boxes_instances, info_boxes_dict, tenant_desc["tenant"])
+            self._fill_boxes_inst(boxes_instances, physical_topology, tenant_desc["tenant"])
 
             # Fill function instances with additional information
             self._fill_func_insts(functions_instances, tenant_desc["tenant"])
@@ -100,9 +100,12 @@ class TemplateInterpreter:
 
         self._logger.debug("Finish interpreting playground template")
         self._logger.debug(clusters_instances)
-        return clusters_instances
+        return physical_topology, clusters_instances
 
     def _init_clusters_desc(self, all_cluster_list: List[Cluster], elem_descs: List[dict]) -> None:
+        if not elem_descs:
+            return None
+
         for _elem_desc in elem_descs:
             _cluster_name = _elem_desc["where"].split(".")[0]
 
@@ -115,6 +118,9 @@ class TemplateInterpreter:
                 all_cluster_list.append(_cluster_desc)
 
     def _init_boxes_desc(self, all_boxes_list: List[Box], tenant_boxes_desc: List[dict]) -> None:
+        if not tenant_boxes_desc:
+            return None
+
         for box_desc in tenant_boxes_desc:
             if not self._find_by_name(all_boxes_list, "name", box_desc["name"]):
                 _box_instance = Box()
@@ -127,6 +133,9 @@ class TemplateInterpreter:
                 all_boxes_list.append(_box_instance)
 
     def _init_funcions_desc(self, all_func_list: List[Function], tenant_functions_desc: List[dict]) -> None:
+        if not tenant_functions_desc:
+            return None
+
         for func_desc in tenant_functions_desc:
             if not self._find_by_name(all_func_list, "name", func_desc["name"]):
                 _function_instance = Function()
@@ -139,10 +148,16 @@ class TemplateInterpreter:
                 all_func_list.append(_function_instance)
 
     def _fill_func_insts(self, all_func_list: List[Function], tenant: str) -> None:
+        if len(all_func_list) != 0:
+            return None
+
         for _func_inst in all_func_list:
             _func_inst.tenant = tenant
 
     def _fill_boxes_inst(self, all_boxes_list: List[Box], boxes_spec: List[dict], tenant: str) -> None:
+        if len(all_boxes_list) == 0:
+            return None
+
         for _box_inst in all_boxes_list:
             _box_inst.tenant = tenant
 
@@ -160,6 +175,9 @@ class TemplateInterpreter:
                 _box_inst.network = None
 
     def _match_func_to_cluster(self, all_clusters_list, all_func_list):
+        if len(all_clusters_list) == 0 or len(all_func_list) == 0:
+            return None
+
         for _func_inst in all_func_list:
             _cluster_name = _func_inst.where.split(".")[0]
             _cluster_inst: Cluster = self._find_by_name(all_clusters_list, "name", _cluster_name)
@@ -170,6 +188,9 @@ class TemplateInterpreter:
                 _cluster_inst.functions.append(_func_inst)
 
     def _match_box_to_cluster(self, all_cluster_list, all_boxes_list):
+        if len(all_cluster_list) == 0 or len(all_boxes_list) == 0:
+            return None
+
         for _box_inst in all_boxes_list:
             _cluster_name = _box_inst.where.split(".")[0]
             _cluster_inst: Cluster = self._find_by_name(all_cluster_list, "name", _cluster_name)
@@ -188,18 +209,7 @@ class TemplateInterpreter:
                 if getattr(e, field).lower() == value.lower():
                     return e
 
-    def _get_template_dict(self):
-        _template_dict = self._store.get_template()
-        self._validate_template_format(_template_dict)
-        return _template_dict
-
-    def _get_boxes_dict(self):
-        _boxes_dict = self._store.get_boxes()
-        self._validate_boxes_format(_boxes_dict)
-        return _boxes_dict
-
         # TODO Implement validation for Box.yaml
-
     def _validate_boxes_format(self, boxes_dict):
         pass
 
@@ -227,22 +237,6 @@ class TemplateInterpreter:
 
         return nic_instance
 
-    # TODO Implement validation for playground.yaml
-    def _validate_template_format(self, template_dict):
-        pass
-
-    def _get_box_from_boxes_dict(self, box_name, box_place, boxes_dict):
-        where_dict = None
-        for where in boxes_dict:
-            if where["where"].lower() == box_place.lower():
-                where_dict = where["boxes"]
-
-        for box in where_dict:
-            if box["name"].lower() == box_name.lower():
-                return box
-
-        return None
-
     def _create_software_instances(self, software_dicts):
         if len(software_dicts) == 0:
             return None
@@ -258,6 +252,10 @@ class TemplateInterpreter:
             software_instance.version = software_dict.get("version", None)
             software_instances.append(software_instance)
         return software_instances
+
+    # TODO Implement validation for playground.yaml
+    def _validate_template_format(self, template_dict):
+        pass
 
 
 if __name__ == "__main__":

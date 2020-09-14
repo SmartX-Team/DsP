@@ -33,19 +33,22 @@ class DsPTower:
 
     def start(self, _prov_mode: str):
 
-        if _prov_mode not in ["provisioning", "release"]:
-            self._logger.error("Mode {} is not supported. Terminated.".format(_prov_mode))
-            exit(1)
-
-        self._physical_topology = self.interpreter.get_physical_topology()
-        self._desired_playground = self.interpreter.get_playground()
+        # self._physical_topology = self.interpreter.get_physical_topology()
+        self._physical_topology, self._desired_playground = self.interpreter.get_playground()
 
         prov_result = None
-        if _prov_mode == "provisioning":
+        if _prov_mode == "compose":
             prov_result = self.coordinator.compose(self._physical_topology, self._desired_playground)
 
-        # elif _prov_mode == "release":
-        #     prov_result = self.coordinator.release(self._playground)
+        elif _prov_mode == "update":
+            prov_result = self.coordinator.update(self._physical_topology, self._desired_playground)
+
+        elif _prov_mode == "release":
+            prov_result = self.coordinator.release(self._physical_topology, self._desired_playground)
+
+        else:
+            self._logger.error("Mode {} is not supported. Terminated.".format(_prov_mode))
+            exit(1)
 
         if prov_result:
             while not prov_result.empty():
