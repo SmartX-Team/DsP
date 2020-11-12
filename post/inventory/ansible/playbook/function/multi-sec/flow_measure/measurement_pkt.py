@@ -2,7 +2,6 @@ import time
 
 from ctypes import *
 import ctypes as ct
-import sys
 import socket
 import os
 import struct
@@ -23,7 +22,7 @@ _logger = None
 
 def get_bpf_text_file(_map_name):
     _bpf_text = None
-    with open('measurement.c') as f:
+    with open('measurement_pkt.c') as f:
         _bpf_text = f.read()
 
     _bpf_text = _bpf_text.replace("<map_name>", _map_name)
@@ -129,25 +128,28 @@ if __name__ == "__main__":
 
             if len(flow_tuples) != 0:
                 flow_cnt_table.clear()
+
                 msg_dict = create_message(flow_tuples)
-                msg_key = "{}.{}.{}".format(socket.gethostname(), function_name, networking_point).encode('utf-8')
+                msg_dict["pbox"] = socket.gethostname()
+                msg_dict["net_point"] = networking_point
+                msg_dict["func"] = function_name
+
                 msg_val = json.dumps(msg_dict).encode('utf-8')
 
                 try:
                     producer = KafkaProducer(bootstrap_servers=[kafka_url])
-                    producer.send(kafka_topic, key=msg_key, value=msg_val)
+                    producer.send(kafka_topic, msg_val)
                     _logger.debug("Send kafka message successfully")
                     producer.close()
 
                 except NoBrokersAvailable as noBrokerExt:
                     _logger.error("Kafka Broker in Security Post is not accessible")
 
-                _logger.debug("{}: {}".format(msg_key, msg_val))
+                _logger.debug("{}".format(msg_val))
 
             time.sleep(setting["output_interval"])
 
     except KeyboardInterrupt:
-        sys.stdout.close()
         flow_cnt_table.clear()
         _logger.warning("Keyboard Interrupted")
         exit()
