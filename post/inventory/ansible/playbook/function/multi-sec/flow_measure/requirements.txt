@@ -1,4 +1,4 @@
 pytz
 PyYAML
 bcc
-python-kafka
+kafka-python

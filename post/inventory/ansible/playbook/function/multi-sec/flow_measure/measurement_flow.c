@@ -56,11 +56,8 @@ int packet_measure(struct __sk_buff *skb) {
     struct flow_tuple_t flow_tuple = {0};
 
     u32 pkt_len = 0;
-    u8 tcp_cwr = 0, tcp_ece = 0, tcp_urg = 0, tcp_ack = 0, tcp_psh = 0, tcp_rst = 0, tcp_syn = 0, tcp_fin = 0;
-
-    // Other metrics
-    // Current time
-    // Packet length
+    u8 tcp_urg = 0, tcp_ack = 0, tcp_psh = 0, tcp_rst = 0, tcp_syn = 0, tcp_fin = 0;
+//    u8 tcp_cwr = 0, tcp_ece = 0;
 
     ETH: {
 //        bpf_trace_printk("ETH \n");
@@ -108,8 +105,10 @@ int packet_measure(struct __sk_buff *skb) {
 
     ICMP4: {
 //        bpf_trace_printk("ICMP4 \n");
-        //  This version does not handle ICMP4 headers
-        goto DROP;
+        flow_tuple.dport = 0;
+        flow_tuple.sport = 0;
+
+        goto STORE;
     }
 
     UDP: {
@@ -123,6 +122,7 @@ int packet_measure(struct __sk_buff *skb) {
     }
 
     TCP: {
+    //        bpf_trace_printk("TCP \n");
         struct tcp_t *tcp = cursor_advance(cursor, sizeof(*tcp));
         /*
           calculate tcp header length
@@ -142,8 +142,6 @@ int packet_measure(struct __sk_buff *skb) {
         tcp_rst = tcp -> flag_rst;
         tcp_syn = tcp -> flag_syn;
         tcp_fin = tcp -> flag_fin;
-
-//        bpf_trace_printk("TCP %d\n", tcp_syn);
 
         goto STORE;
     }
@@ -177,7 +175,8 @@ int packet_measure(struct __sk_buff *skb) {
 
             goto EOP;
         } else {
-            bpf_trace_printk("Cannot found a matched flow from the map \n");
+//            bpf_trace_printk("Cannot found a matched flow from the map \n");
+
             struct flow_stat_t new_flow_stat = {0};
             new_flow_stat.start_ts = cur_time;
             new_flow_stat.last_ts = cur_time;
@@ -208,24 +207,3 @@ int packet_measure(struct __sk_buff *skb) {
 //	    bpf_trace_printk("DROP \n\n");
         return -1;
 }
-
-//struct flow_stat_t{
-//    u32 start_ts;
-//    u32 last_ts;
-//
-//    u32 pkt_cnt;
-//    u16 pkt_bytes_min;
-//    u16 pkt_bytes_max;
-//    u32 pkt_bytes_total;
-//
-//    u32 ipat_min;    // ipat = inter-packet arrival time
-//    u32 ipat_max;
-//    u32 ipat_total;
-//
-//    u32 tcp_syn_cnt;
-//    u32 tcp_ack_cnt;
-//    u32 tcp_fin_cnt;
-//    u32 tcp_rst_cnt;
-//    u32 tcp_psh_cnt;
-//    u32 tcp_urg_cnt;
-//};

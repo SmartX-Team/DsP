@@ -14,6 +14,7 @@ import pytz
 import psutil
 import yaml
 import json
+import math
 
 from bcc import BPF
 # from kafka import KafkaProducer
@@ -84,7 +85,27 @@ def create_message(_flow_tuples):
         sport = k.sport
         l4_proto = k.l4_proto
 
-        msg_dict["flows"].append("{},{},{},{},{}".format(dip, sip, dport, sport, l4_proto))
+        flow_duration = round((v.last_ts - v.start_ts) / 10 ** 3, 0)  # in microseconds
+        pps = round(v.pkt_cnt / flow_duration * 10 ** 6, 2)
+        bps = round(v.pkt_bytes_total / flow_duration * 10 ** 6, 0)
+        pkt_bytes_mean = round(v.pkt_bytes_total / v.pkt_cnt, 0)
+        ipat_mean = round(v.ipat_total / (v.pkt_cnt - 1), 2)
+
+        flow_msg = ""
+        flow_msg = flow_msg + "{},{},{},{},{}".format(dip, sip, dport, sport, l4_proto)
+        flow_msg = flow_msg + ",{},{}".format(v.start_ts, v.last_ts)
+        flow_msg = flow_msg + ",{},{}".format(v.pkt_cnt, pps)
+        flow_msg = flow_msg + ",{},{},{},{},{}".format(v.pkt_bytes_total,
+                                                       v.pkt_bytes_min, v.pkt_bytes_max,
+                                                       pkt_bytes_mean, bps)
+        flow_msg = flow_msg + ",{},{},{},{}".format(v.ipat_total, v.ipat_min, v.ipat_max, ipat_mean)
+        flow_msg = flow_msg + ",{},{},{},{},{},{}".format(v.tcp_syn_cnt,
+                                                          v.tcp_ack_cnt,
+                                                          v.tcp_fin_cnt,
+                                                          v.tcp_rst_cnt,
+                                                          v.tcp_psh_cnt,
+                                                          v.tcp_urg_cnt)
+        msg_dict["flows"].append(flow_msg)
 
     return msg_dict
 
@@ -141,7 +162,7 @@ if __name__ == "__main__":
                 # except NoBrokersAvailable as noBrokerExt:
                 #     _logger.error("Kafka Broker in Security Post is not accessible")
 
-                _logger.debug("{}".format(msg_val))
+                _logger.debug("[Length: {}] {}".format(len(msg_val), msg_val))
 
             else:
                 _logger.debug("No flows are captured")
